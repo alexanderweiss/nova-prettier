@@ -1,0 +1,34 @@
+{
+	"identifier": "alexanderweiss.prettier",
+	"name": "Prettier",
+	"vendor": "alexanderweiss",
+	"description": "Integrates Prettier for code formatting.",
+	"version": "0.1.0",
+	"categories": ["formatters"],
+
+	"main": "main.js",
+
+	"activationEvents": ["onLanguage:javascript"],
+
+	"entitlements": {
+		"process": true
+	},
+
+	"commands": {
+		"editor": [
+			{
+				"title": "Format with Prettier",
+				"command": "prettier.format"
+			}
+		]
+	},
+	"config-workspace": [
+		{
+			"key": "prettier.format-on-save",
+			"title": "Format on save",
+			"description": "Whether to format documents when saved.",
+			"type": "boolean",
+			"default": true
+		}
+	]
+}
