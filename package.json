@@ -1,5 +1,27 @@
 {
-  "dependencies": {
-    "prettier": "^1.19.1"
-  }
+	"name": "nova-prettier",
+	"version": "0.2.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"build": "rollup -c"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/alexanderweiss/nova-prettier.git"
+	},
+	"author": "Alexander Weiss",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/alexanderweiss/nova-prettier/issues"
+	},
+	"homepage": "https://github.com/alexanderweiss/nova-prettier#readme",
+	"dependencies": {
+		"nova-npm-executable": "^0.1.1"
+	},
+	"devDependencies": {
+		"@rollup/plugin-commonjs": "^11.0.2",
+		"@rollup/plugin-node-resolve": "^7.1.1",
+		"rollup": "^1.31.1"
+	}
 }

@@ -7,4 +7,3 @@ const prettier = require('../node_modules/prettier')
 
 	console.log(JSON.stringify(config))
 })()
-

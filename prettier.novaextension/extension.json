@@ -3,22 +3,39 @@
 	"name": "Prettier",
 	"vendor": "alexanderweiss",
 	"description": "Integrates Prettier for code formatting.",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"categories": ["formatters"],
 	"bugs": "https://github.com/alexanderweiss/nova-prettier/issues",
-    "entitlements": {
-        "process": true
-    },
+	"entitlements": {
+		"process": true,
+		"filesystem": "readwrite"
+	},
 
 	"main": "main.js",
-
-	"activationEvents": ["onLanguage:javascript"],
 
 	"commands": {
 		"editor": [
 			{
 				"title": "Format with Prettier",
-				"command": "prettier.format"
+				"command": "prettier.format",
+				"when": "editorHasFocus",
+				"filters": {
+					"syntaxes": [
+						"json",
+						"html",
+						"javascript",
+						"jsx",
+						"flow",
+						"typescript",
+						"vue",
+						"angular",
+						"less",
+						"scss",
+						"graphql",
+						"markdown",
+						"yaml"
+					]
+				}
 			}
 		]
 	},

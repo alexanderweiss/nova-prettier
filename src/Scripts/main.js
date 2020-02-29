@@ -1,30 +1,11 @@
-const prettier = require('../node_modules/prettier/standalone.js')
-const angularParser = require('../node_modules/prettier/parser-angular.js')
-const babylonParser = require('../node_modules/prettier/parser-babylon.js')
-const flowParser = require('../node_modules/prettier/parser-flow.js')
-const glimmerParser = require('../node_modules/prettier/parser-glimmer.js')
-const graphqlParser = require('../node_modules/prettier/parser-graphql.js')
-const htmlParser = require('../node_modules/prettier/parser-html.js')
-const markdownParser = require('../node_modules/prettier/parser-markdown.js')
-const postcssParser = require('../node_modules/prettier/parser-postcss.js')
-const typescriptParser = require('../node_modules/prettier/parser-typescript.js')
-const yamlParser = require('../node_modules/prettier/parser-yaml.js')
-
-const parsers = [
-	angularParser,
-	babylonParser,
-	flowParser,
-	glimmerParser,
-	graphqlParser,
-	htmlParser,
-	markdownParser,
-	postcssParser,
-	typescriptParser,
-	yamlParser
-]
+const ensureInstalled = require('./install.js')
 
 class FormattingService {
 	constructor() {
+		const { prettier, parsers } = require('./prettier.js')()
+		this.prettier = prettier
+		this.parsers = parsers
+
 		this.didAddTextEditor = this.didAddTextEditor.bind(this)
 		this.toggleFormatOnSave = this.toggleFormatOnSave.bind(this)
 		this.format = this.format.bind(this)
@@ -74,21 +55,23 @@ class FormattingService {
 			console.log(`Unable to get config for ${document.path}: ${err}`)
 		}
 
-		let newCursorOffset
 		await editor.edit(e => {
 			const text = editor.getTextInRange(documentRange)
 
 			try {
-				const { formatted, cursorOffset } = prettier.formatWithCursor(text, {
-					...config,
-					cursorOffset: editor.selectedRange.end,
-					filepath: document.path,
-					plugins: parsers
-				})
+				const { formatted, cursorOffset } = this.prettier.formatWithCursor(
+					text,
+					{
+						...config,
+						cursorOffset: editor.selectedRange.end,
+						filepath: document.path,
+						plugins: this.parsers
+					}
+				)
 
 				if (formatted === text) return
 				e.replace(documentRange, formatted)
-				newCursorOffset = cursorOffset
+				editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
 			} catch (err) {
 				if (err.constructor.name === 'UndefinedParserError') return
 				const issue = new Issue()
@@ -102,11 +85,6 @@ class FormattingService {
 				this.issueCollection.set(document.path, [issue])
 			}
 		})
-
-		if (newCursorOffset !== undefined) {
-			editor.selectedRanges = [new Range(newCursorOffset, newCursorOffset)]
-			editor.scrollToCursorPosition()
-		}
 	}
 
 	async getConfigForPath(path) {
@@ -140,11 +118,14 @@ class FormattingService {
 	}
 }
 
-new Promise(resolve => `Returning: ${err}`).catch(console.error)
-
-exports.activate = function() {
-	const formattingService = new FormattingService()
-	nova.commands.register('prettier.format', formattingService.format)
+exports.activate = async function() {
+	try {
+		await ensureInstalled()
+		const formattingService = new FormattingService()
+		nova.commands.register('prettier.format', formattingService.format)
+	} catch (err) {
+		console.error('Unable to set up prettier service', err)
+	}
 }
 
 exports.deactivate = function() {
