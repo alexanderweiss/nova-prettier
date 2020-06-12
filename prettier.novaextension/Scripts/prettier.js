@@ -16,8 +16,8 @@ module.exports = () => {
 				markdownParser: require('../node_modules/prettier/parser-markdown.js'),
 				postcssParser: require('../node_modules/prettier/parser-postcss.js'),
 				typescriptParser: require('../node_modules/prettier/parser-typescript.js'),
-				yamlParser: require('../node_modules/prettier/parser-yaml.js')
-			}
+				yamlParser: require('../node_modules/prettier/parser-yaml.js'),
+			},
 		};
 	}
 	return loaded

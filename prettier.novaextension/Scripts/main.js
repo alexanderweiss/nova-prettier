@@ -163,7 +163,7 @@ var install = async () => {
 			await prettier.install();
 		}
 	} catch (err) {
-			console.error('Unable to find or install prettier', err);
+		console.error('Unable to find or install prettier', err);
 	}
 };
 
@@ -199,7 +199,7 @@ class FormattingService {
 		} else {
 			if (this.onDidAddTextEditorListener)
 				this.onDidAddTextEditorListener.dispose();
-			this.saveListeners.forEach(listener => listener.dispose());
+			this.saveListeners.forEach((listener) => listener.dispose());
 			this.saveListeners.clear();
 		}
 	}
@@ -211,18 +211,21 @@ class FormattingService {
 
 	async format(editor) {
 		const { document } = editor;
-		const documentRange = new Range(0, document.length);
 
-		this.issueCollection.set(document.path, []);
-
-		let config;
+		let config, info;
 		try {
-			config = await this.getConfigForPath(document.path);
+			;({ config, info } = await this.getConfigForPath(document.path));
 		} catch (err) {
-			console.log(`Unable to get config for ${document.path}: ${err}`);
+			console.warn(`Unable to get config for ${document.path}: ${err}`);
+			this.showConfigResolutionError(document.path);
 		}
 
-		await editor.edit(e => {
+		if (info.ignored === true) return
+
+		const documentRange = new Range(0, document.length);
+		this.issueCollection.set(document.path, []);
+
+		await editor.edit((e) => {
 			const text = editor.getTextInRange(documentRange);
 
 			try {
@@ -232,7 +235,7 @@ class FormattingService {
 						...config,
 						cursorOffset: editor.selectedRange.end,
 						filepath: document.path,
-						plugins: this.parsers
+						plugins: this.parsers,
 					}
 				);
 
@@ -265,27 +268,54 @@ class FormattingService {
 	}
 
 	async resolveConfigForPath(path) {
-		let resolve;
-		const promise = new Promise(_resolve => (resolve = _resolve));
+		let resolve, reject;
+		const promise = new Promise((_resolve, _reject) => {
+			resolve = _resolve;
+			reject = _reject;
+		});
 
 		const process = new Process('/usr/bin/env', {
 			args: [
 				'node',
 				nova.path.join(nova.extension.path, 'Scripts', 'config.js'),
-				path
-			]
+				nova.path.join(nova.workspace.path, '.prettierignore'),
+				path,
+			],
 		});
 
-		process.onStdout(result => {
-			resolve(JSON.parse(result));
+		const errors = [];
+
+		process.onStdout((result) => {
+			try {
+				resolve(JSON.parse(result));
+			} catch (err) {
+				reject(err);
+			}
+		});
+		process.onStderr((err) => {
+			errors.push(err);
+		});
+		process.onDidExit((status) => {
+			if (status === '0') return
+			reject(errors.join('\n'));
 		});
 		process.start();
 
 		return promise
 	}
+
+	showConfigResolutionError(path) {
+		let request = new NotificationRequest('prettier-config-resolution-error');
+
+		request.title = nova.localize('Failed to resolve Prettier configuration');
+		request.body = nova.localize(`File to be formatted: ${path}`);
+		request.actions = [nova.localize('OK')];
+
+		nova.notifications.add(request).catch((err) => console.error(err));
+	}
 }
 
-var activate = async function() {
+var activate = async function () {
 	try {
 		await install();
 		const formattingService = new FormattingService();
@@ -295,7 +325,7 @@ var activate = async function() {
 	}
 };
 
-var deactivate = function() {
+var deactivate = function () {
 	// Clean up state before the extension is deactivated
 };
 
