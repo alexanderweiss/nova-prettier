@@ -6,7 +6,7 @@ module.exports = () => {
 			prettier: require('../node_modules/prettier/standalone.js'),
 			parsers: {
 				angularParser: require('../node_modules/prettier/parser-angular.js'),
-				babylonParser: require('../node_modules/prettier/parser-babylon.js'),
+				babelParser: require('../node_modules/prettier/parser-babel.js'),
 				flowParser: require('../node_modules/prettier/parser-flow.js'),
 				glimmerParser: require('../node_modules/prettier/parser-glimmer.js'),
 				graphqlParser: require('../node_modules/prettier/parser-graphql.js'),
