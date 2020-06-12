@@ -44,17 +44,19 @@ class FormattingService {
 
 	async format(editor) {
 		const { document } = editor
-		const documentRange = new Range(0, document.length)
 
-		this.issueCollection.set(document.path, [])
-
-		let config
+		let config, info
 		try {
-			config = await this.getConfigForPath(document.path)
+			;({ config, info } = await this.getConfigForPath(document.path))
 		} catch (err) {
 			console.warn(`Unable to get config for ${document.path}: ${err}`)
 			this.showConfigResolutionError(document.path)
 		}
+
+		if (info.ignored === true) return
+
+		const documentRange = new Range(0, document.length)
+		this.issueCollection.set(document.path, [])
 
 		await editor.edit((e) => {
 			const text = editor.getTextInRange(documentRange)
@@ -109,6 +111,7 @@ class FormattingService {
 			args: [
 				'node',
 				nova.path.join(nova.extension.path, 'Scripts', 'config.js'),
+				nova.path.join(nova.workspace.path, '.prettierignore'),
 				path,
 			],
 		})
