@@ -32,7 +32,7 @@ class FormattingService {
 		} else {
 			if (this.onDidAddTextEditorListener)
 				this.onDidAddTextEditorListener.dispose()
-			this.saveListeners.forEach(listener => listener.dispose())
+			this.saveListeners.forEach((listener) => listener.dispose())
 			this.saveListeners.clear()
 		}
 	}
@@ -55,7 +55,7 @@ class FormattingService {
 			console.log(`Unable to get config for ${document.path}: ${err}`)
 		}
 
-		await editor.edit(e => {
+		await editor.edit((e) => {
 			const text = editor.getTextInRange(documentRange)
 
 			try {
@@ -65,7 +65,7 @@ class FormattingService {
 						...config,
 						cursorOffset: editor.selectedRange.end,
 						filepath: document.path,
-						plugins: this.parsers
+						plugins: this.parsers,
 					}
 				)
 
@@ -99,17 +99,17 @@ class FormattingService {
 
 	async resolveConfigForPath(path) {
 		let resolve
-		const promise = new Promise(_resolve => (resolve = _resolve))
+		const promise = new Promise((_resolve) => (resolve = _resolve))
 
 		const process = new Process('/usr/bin/env', {
 			args: [
 				'node',
 				nova.path.join(nova.extension.path, 'Scripts', 'config.js'),
-				path
-			]
+				path,
+			],
 		})
 
-		process.onStdout(result => {
+		process.onStdout((result) => {
 			resolve(JSON.parse(result))
 		})
 		process.start()
@@ -118,7 +118,7 @@ class FormattingService {
 	}
 }
 
-exports.activate = async function() {
+exports.activate = async function () {
 	try {
 		await ensureInstalled()
 		const formattingService = new FormattingService()
@@ -128,6 +128,6 @@ exports.activate = async function() {
 	}
 }
 
-exports.deactivate = function() {
+exports.deactivate = function () {
 	// Clean up state before the extension is deactivated
 }

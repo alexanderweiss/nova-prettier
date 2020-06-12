@@ -7,6 +7,6 @@ module.exports = async () => {
 			await prettier.install()
 		}
 	} catch (err) {
-			console.error('Unable to find or install prettier', err)
+		console.error('Unable to find or install prettier', err)
 	}
 }
