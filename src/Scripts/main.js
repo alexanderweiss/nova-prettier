@@ -52,7 +52,8 @@ class FormattingService {
 		try {
 			config = await this.getConfigForPath(document.path)
 		} catch (err) {
-			console.log(`Unable to get config for ${document.path}: ${err}`)
+			console.warn(`Unable to get config for ${document.path}: ${err}`)
+			this.showConfigResolutionError(document.path)
 		}
 
 		await editor.edit((e) => {
@@ -98,8 +99,11 @@ class FormattingService {
 	}
 
 	async resolveConfigForPath(path) {
-		let resolve
-		const promise = new Promise((_resolve) => (resolve = _resolve))
+		let resolve, reject
+		const promise = new Promise((_resolve, _reject) => {
+			resolve = _resolve
+			reject = _reject
+		})
 
 		const process = new Process('/usr/bin/env', {
 			args: [
@@ -109,12 +113,35 @@ class FormattingService {
 			],
 		})
 
+		const errors = []
+
 		process.onStdout((result) => {
-			resolve(JSON.parse(result))
+			try {
+				resolve(JSON.parse(result))
+			} catch (err) {
+				reject(err)
+			}
+		})
+		process.onStderr((err) => {
+			errors.push(err)
+		})
+		process.onDidExit((status) => {
+			if (status === '0') return
+			reject(errors.join('\n'))
 		})
 		process.start()
 
 		return promise
+	}
+
+	showConfigResolutionError(path) {
+		let request = new NotificationRequest('prettier-config-resolution-error')
+
+		request.title = nova.localize('Failed to resolve Prettier configuration')
+		request.body = nova.localize(`File to be formatted: ${path}`)
+		request.actions = [nova.localize('OK')]
+
+		nova.notifications.add(request).catch((err) => console.error(err))
 	}
 }
 
