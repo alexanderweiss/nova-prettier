@@ -1,5 +1,5 @@
-const commonjs = require('@rollup/plugin-commonjs')
-const resolve = require('@rollup/plugin-node-resolve')
+import commonjs from '@rollup/plugin-commonjs'
+import resolve from '@rollup/plugin-node-resolve'
 
 export default [
 	{

@@ -20,8 +20,8 @@
 		"nova-npm-executable": "^0.1.1"
 	},
 	"devDependencies": {
-		"@rollup/plugin-commonjs": "^11.0.2",
-		"@rollup/plugin-node-resolve": "^7.1.1",
-		"rollup": "^1.31.1"
+		"@rollup/plugin-commonjs": "^13.0.0",
+		"@rollup/plugin-node-resolve": "^8.0.1",
+		"rollup": "^2.15.0"
 	}
 }
