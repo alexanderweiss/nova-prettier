@@ -1,8 +1,8 @@
 const ensureInstalled = require('./install.js')
 
 class FormattingService {
-	constructor() {
-		const { prettier, parsers } = require('./prettier.js')()
+	constructor(modulePath, prettier, parsers) {
+		this.modulePath = modulePath
 		this.prettier = prettier
 		this.parsers = parsers
 
@@ -111,6 +111,7 @@ class FormattingService {
 			args: [
 				'node',
 				nova.path.join(nova.extension.path, 'Scripts', 'config.js'),
+				this.modulePath,
 				nova.path.join(nova.workspace.path, '.prettierignore'),
 				path,
 			],
@@ -151,7 +152,12 @@ class FormattingService {
 exports.activate = async function () {
 	try {
 		await ensureInstalled()
-		const formattingService = new FormattingService()
+		const { modulePath, prettier, parsers } = await require('./prettier.js')()
+		const formattingService = new FormattingService(
+			modulePath,
+			prettier,
+			parsers
+		)
 		nova.commands.register('prettier.format', formattingService.format)
 	} catch (err) {
 		console.error('Unable to set up prettier service', err)
