@@ -1,8 +1,9 @@
-const prettier = require('../node_modules/prettier')
+const path = require('path')
 
 // Resolve config using "normal" Prettier and log it.
 ;(async () => {
-	const [, , ignorePath, filePath] = process.argv
+	const [, , modulePath, ignorePath, filePath] = process.argv
+	const prettier = require(path.join(modulePath))
 	const config = await prettier.resolveConfig(filePath)
 	const info = await prettier.getFileInfo(filePath, {
 		ignorePath,
