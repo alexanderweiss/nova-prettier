@@ -1,0 +1,9 @@
+{
+  "actions" : {
+    "build" : {
+      "enabled" : true,
+      "script" : "npm run build"
+    }
+  },
+  "identifier" : "70AF85C0-4071-4191-98AC-DC409AD3B40D"
+}
