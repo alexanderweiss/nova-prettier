@@ -20,17 +20,17 @@ async function findPrettier() {
 
 		resolve(path)
 	})
-	
+
 	const errors = []
 	process.onStderr((err) => {
 		errors.push(err)
 	})
-	
+
 	process.onDidExit((status) => {
 		if (status === '0') return
 		reject(errors.join('\n'))
 	})
-	
+
 	process.start()
 
 	return promise
@@ -54,9 +54,9 @@ module.exports = async function () {
 		console.warn('Error trying to find workspace Prettier', err)
 	}
 
-	const modulePath = workspaceModulePath
-		? relativePath(workspaceModulePath)
-		: '../node_modules/prettier'
+	const modulePath =
+		workspaceModulePath ||
+		nova.path.join(nova.extension.path, 'node_modules', 'prettier')
 
 	console.log(
 		`Using prettier from ${modulePath} (extension located at: ${nova.extension.path})`
@@ -64,22 +64,15 @@ module.exports = async function () {
 
 	loaded = {
 		modulePath,
-		prettier: require(nova.path.join(modulePath, 'standalone.js')),
-		parsers: {
-			angularParser: require(nova.path.join(modulePath, 'parser-angular.js')),
-			babelParser: require(nova.path.join(modulePath, 'parser-babel.js')),
-			flowParser: require(nova.path.join(modulePath, 'parser-flow.js')),
-			glimmerParser: require(nova.path.join(modulePath, 'parser-glimmer.js')),
-			graphqlParser: require(nova.path.join(modulePath, 'parser-graphql.js')),
-			htmlParser: require(nova.path.join(modulePath, 'parser-html.js')),
-			markdownParser: require(nova.path.join(modulePath, 'parser-markdown.js')),
-			postcssParser: require(nova.path.join(modulePath, 'parser-postcss.js')),
-			typescriptParser: require(nova.path.join(
-				modulePath,
-				'parser-typescript.js'
-			)),
-			yamlParser: require(nova.path.join(modulePath, 'parser-yaml.js')),
-		},
+		prettier: require(relativePath(
+			nova.path.join(modulePath, 'standalone.js')
+		)),
+		parsers: [
+			...nova.fs
+				.listdir(modulePath)
+				.filter((p) => p.match(/^parser-.*?\.js$/))
+				.map((p) => require(relativePath(nova.path.join(modulePath, p)))),
+		],
 	}
 
 	return loaded
