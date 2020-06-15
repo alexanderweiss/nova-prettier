@@ -5,14 +5,13 @@
 	"description": "Integrates Prettier for code formatting.",
 	"version": "1.0.0",
 	"categories": ["formatters"],
+	"repository": "https://github.com/alexanderweiss/nova-prettier",
 	"bugs": "https://github.com/alexanderweiss/nova-prettier/issues",
 	"entitlements": {
 		"process": true,
-		"filesystem": "readwrite"
+		"filesystem": "readonly"
 	},
-
 	"main": "main.js",
-
 	"commands": {
 		"editor": [
 			{
