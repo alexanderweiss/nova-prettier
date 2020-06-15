@@ -168,9 +168,9 @@ var install = async () => {
 };
 
 class FormattingService {
-	constructor() {
-		const { prettier: prettier$1, parsers } = prettier();
-		this.prettier = prettier$1;
+	constructor(modulePath, prettier, parsers) {
+		this.modulePath = modulePath;
+		this.prettier = prettier;
 		this.parsers = parsers;
 
 		this.didAddTextEditor = this.didAddTextEditor.bind(this);
@@ -278,6 +278,7 @@ class FormattingService {
 			args: [
 				'node',
 				nova.path.join(nova.extension.path, 'Scripts', 'config.js'),
+				this.modulePath,
 				nova.path.join(nova.workspace.path, '.prettierignore'),
 				path,
 			],
@@ -318,7 +319,12 @@ class FormattingService {
 var activate = async function () {
 	try {
 		await install();
-		const formattingService = new FormattingService();
+		const { modulePath, prettier: prettier$1, parsers } = await prettier();
+		const formattingService = new FormattingService(
+			modulePath,
+			prettier$1,
+			parsers
+		);
 		nova.commands.register('prettier.format', formattingService.format);
 	} catch (err) {
 		console.error('Unable to set up prettier service', err);
