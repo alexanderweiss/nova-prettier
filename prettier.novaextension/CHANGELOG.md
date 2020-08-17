@@ -1,3 +1,9 @@
+## [1.2.0] - 2020-08-17
+
+### Added
+
+- Added a warning with help when Prettier (and NPM) can't be found.
+
 ## [1.1.0] - 2020-06-15
 
 ### Added
