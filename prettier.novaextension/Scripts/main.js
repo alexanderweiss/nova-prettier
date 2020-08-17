@@ -306,20 +306,29 @@ class FormattingService {
 	}
 
 	showConfigResolutionError(path) {
-		let request = new NotificationRequest('prettier-config-resolution-error');
-
-		request.title = nova.localize('Failed to resolve Prettier configuration');
-		request.body = nova.localize(`File to be formatted: ${path}`);
-		request.actions = [nova.localize('OK')];
-
-		nova.notifications.add(request).catch((err) => console.error(err));
+		showError(
+			'prettier-config-resolution-error',
+			'Failed to resolve Prettier configuration',
+			`File to be formatted: ${path}`
+		);
 	}
+}
+
+function showError(id, title, body) {
+	let request = new NotificationRequest(id);
+
+	request.title = nova.localize(title);
+	request.body = nova.localize(body);
+	request.actions = [nova.localize('OK')];
+
+	nova.notifications.add(request).catch((err) => console.error(err));
 }
 
 var activate = async function () {
 	try {
 		await install();
 		const { modulePath, prettier: prettier$1, parsers } = await prettier();
+
 		const formattingService = new FormattingService(
 			modulePath,
 			prettier$1,
@@ -328,6 +337,20 @@ var activate = async function () {
 		nova.commands.register('prettier.format', formattingService.format);
 	} catch (err) {
 		console.error('Unable to set up prettier service', err);
+
+		if (err.status === 127) {
+			return showError(
+				'prettier-resolution-error',
+				`Can't find npm and Prettier`,
+				`Prettier couldn't be found because npm isn't available. Please make sure you have Node installed. If you've only installed Node through NVM, you'll need to change your shell configuration to work with Nova. See https://library.panic.com/nova/environment-variables/`
+			)
+		}
+
+		return showError(
+			'prettier-resolution-error',
+			`Unable to start Prettier`,
+			`Please check the extension console for additional logs.`
+		)
 	}
 };
 

@@ -2,6 +2,13 @@
 
 let loaded;
 
+class ProcessError extends Error {
+	constructor(status, message) {
+		super(message);
+		this.status = status;
+	}
+}
+
 async function findPrettier() {
 	let resolve, reject;
 	const promise = new Promise((_resolve, _reject) => {
@@ -30,7 +37,7 @@ async function findPrettier() {
 
 	process.onDidExit((status) => {
 		if (status === '0') return
-		reject(errors.join('\n'));
+		reject(new ProcessError(status, errors.join('\n')));
 	});
 
 	process.start();
@@ -53,6 +60,7 @@ module.exports = async function () {
 	try {
 		workspaceModulePath = await findPrettier();
 	} catch (err) {
+		if (err.status === 127) throw err
 		console.warn('Error trying to find workspace Prettier', err);
 	}
 
