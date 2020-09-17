@@ -17,7 +17,6 @@
 			{
 				"title": "Format with Prettier",
 				"command": "prettier.format",
-				"when": "editorHasFocus",
 				"filters": {
 					"syntaxes": [
 						"json",
