@@ -160,7 +160,7 @@ function showError(id, title, body) {
 	request.body = nova.localize(body)
 	request.actions = [nova.localize('OK')]
 
-	nova.notifications.add(request).catch((err) => console.error(err))
+	nova.notifications.add(request).catch((err) => console.error(err, err.stack))
 }
 
 exports.activate = async function () {
@@ -175,7 +175,7 @@ exports.activate = async function () {
 		)
 		nova.commands.register('prettier.format', formattingService.format)
 	} catch (err) {
-		console.error('Unable to set up prettier service', err)
+		console.error('Unable to set up prettier service', err, err.stack)
 
 		if (err.status === 127) {
 			return showError(
