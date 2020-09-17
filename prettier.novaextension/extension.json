@@ -31,7 +31,8 @@
 						"scss",
 						"graphql",
 						"markdown",
-						"yaml"
+						"yaml",
+						"css"
 					]
 				}
 			}
