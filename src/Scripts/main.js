@@ -47,16 +47,18 @@ class FormattingService {
 
 		let config, info
 		try {
-			;({ config, info } = await this.getConfigForPath(document.path))
+			;({ config, info } = await this.getConfigForPath(
+				document.path || nova.workspace.path
+			))
 		} catch (err) {
 			console.warn(`Unable to get config for ${document.path}: ${err}`)
 			this.showConfigResolutionError(document.path)
 		}
 
-		if (info.ignored === true) return
+		if (document.path && info.ignored === true) return
 
 		const documentRange = new Range(0, document.length)
-		this.issueCollection.set(document.path, [])
+		this.issueCollection.set(document.uri, [])
 
 		await editor.edit((e) => {
 			const text = editor.getTextInRange(documentRange)
@@ -66,8 +68,10 @@ class FormattingService {
 					text,
 					{
 						...config,
+						...(document.path
+							? { filepath: document.path }
+							: { parser: this.parserForSyntax(document.syntax) }),
 						cursorOffset: editor.selectedRange.end,
-						filepath: document.path,
 						plugins: this.parsers,
 					}
 				)
@@ -91,7 +95,7 @@ class FormattingService {
 				issue.line = lineData[1]
 				issue.column = lineData[2]
 
-				this.issueCollection.set(document.path, [issue])
+				this.issueCollection.set(document.uri, [issue])
 			}
 		})
 	}
@@ -150,6 +154,18 @@ class FormattingService {
 			'Failed to resolve Prettier configuration',
 			`File to be formatted: ${path}`
 		)
+	}
+
+	parserForSyntax(syntax) {
+		switch (syntax) {
+			case 'javascript':
+			case 'jsx':
+				return 'babel'
+			case 'flow':
+				return 'babel-flow'
+			default:
+				return syntax
+		}
 	}
 }
 
