@@ -77,9 +77,15 @@ class FormattingService {
 				editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
 			} catch (err) {
 				if (err.constructor.name === 'UndefinedParserError') return
-				const issue = new Issue()
+				
+				// See if it's a proper syntax error.
 				const lineData = err.message.match(/\((\d+):(\d+)\)\n/m)
-
+				if (!lineData) {
+					console.error(err, err.stack)
+					return
+				}
+				
+				const issue = new Issue()
 				issue.message = err.message
 				issue.severity = IssueSeverity.Error
 				issue.line = lineData[1]
