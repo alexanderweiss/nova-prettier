@@ -1,3 +1,16 @@
+## [1.2.1] - 2020-09-17
+
+### Added
+
+- Support formatting of new files that have never been saved.
+- Include CSS in supported syntaxes.
+
+### Changed
+
+- Don't require editor focus for the `Format with Prettier` to be available.
+- Log non-syntax errors from Prettier to the extension console properly.
+- Include stack trace with errors logged in the extension console.
+
 ## [1.2.0] - 2020-08-17
 
 ### Added
