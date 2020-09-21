@@ -45,14 +45,20 @@ class FormattingService {
 	async format(editor) {
 		const { document } = editor
 
-		let config, info
-		try {
-			;({ config, info } = await this.getConfigForPath(
-				document.path || nova.workspace.path
-			))
-		} catch (err) {
-			console.warn(`Unable to get config for ${document.path}: ${err}`)
-			this.showConfigResolutionError(document.path)
+		let config = {}
+		let info = {}
+		// Resolve config if we know a path to check
+		const pathForConfig = document.path || nova.workspace.path
+		if (pathForConfig) {
+			try {
+				;({ config, info } = await this.getConfigForPath(pathForConfig))
+			} catch (err) {
+				console.warn(
+					`Unable to get config for ${document.path}: ${err}`,
+					err.stack
+				)
+				this.showConfigResolutionError(document.path)
+			}
 		}
 
 		if (document.path && info.ignored === true) return
@@ -81,14 +87,14 @@ class FormattingService {
 				editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
 			} catch (err) {
 				if (err.constructor.name === 'UndefinedParserError') return
-				
+
 				// See if it's a proper syntax error.
 				const lineData = err.message.match(/\((\d+):(\d+)\)\n/m)
 				if (!lineData) {
 					console.error(err, err.stack)
 					return
 				}
-				
+
 				const issue = new Issue()
 				issue.message = err.message
 				issue.severity = IssueSeverity.Error
@@ -117,12 +123,13 @@ class FormattingService {
 			reject = _reject
 		})
 
+		const expectedIgnoreDir = nova.workspace.path || nova.path.dirname(path)
 		const process = new Process('/usr/bin/env', {
 			args: [
 				'node',
 				nova.path.join(nova.extension.path, 'Scripts', 'config.js'),
 				this.modulePath,
-				nova.path.join(nova.workspace.path, '.prettierignore'),
+				nova.path.join(expectedIgnoreDir, '.prettierignore'),
 				path,
 			],
 		})
