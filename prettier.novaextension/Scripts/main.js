@@ -156,10 +156,51 @@ var npmExecutable = {
 
 const { NPMExecutable } = npmExecutable;
 
+// TODO: Duplicate code in ./prettier.js (except onStdout handler)
+async function checkPrettierVersion() {
+	let resolve, reject;
+	const promise = new Promise((_resolve, _reject) => {
+		resolve = _resolve;
+		reject = _reject;
+	});
+
+	const process = new Process('/usr/bin/env', {
+		args: ['npm', 'll', 'prettier', '--parseable'],
+		cwd: nova.extension.path,
+	});
+
+	process.onStdout((result) => {
+		if (!result) return resolve(null)
+
+		const [_, name, status] = result.split(':');
+		if (!name.startsWith('prettier@')) return resolve(false)
+		if (status === 'INVALID') return resolve(false)
+		resolve(true);
+	});
+
+	const errors = [];
+	process.onStderr((err) => {
+		errors.push(err);
+	});
+
+	process.onDidExit((status) => {
+		if (status === '0') return
+		reject(errors.join('\n'));
+	});
+
+	process.start();
+
+	return promise
+}
+
 var install = async () => {
 	try {
 		const prettier = new NPMExecutable('prettier');
 		if (!prettier.isInstalled) {
+			console.log('Extension prettier not installed, installing');
+			await prettier.install();
+		} else if (!(await checkPrettierVersion())) {
+			console.log('Extension prettier out of date, updating/installing');
 			await prettier.install();
 		}
 	} catch (err) {
@@ -212,14 +253,20 @@ class FormattingService {
 	async format(editor) {
 		const { document } = editor;
 
-		let config, info;
-		try {
-			;({ config, info } = await this.getConfigForPath(
-				document.path || nova.workspace.path
-			));
-		} catch (err) {
-			console.warn(`Unable to get config for ${document.path}: ${err}`);
-			this.showConfigResolutionError(document.path);
+		let config = {};
+		let info = {};
+		// Resolve config if we know a path to check
+		const pathForConfig = document.path || nova.workspace.path;
+		if (pathForConfig) {
+			try {
+				;({ config, info } = await this.getConfigForPath(pathForConfig));
+			} catch (err) {
+				console.warn(
+					`Unable to get config for ${document.path}: ${err}`,
+					err.stack
+				);
+				this.showConfigResolutionError(document.path);
+			}
 		}
 
 		if (document.path && info.ignored === true) return
@@ -248,14 +295,14 @@ class FormattingService {
 				editor.selectedRanges = [new Range(cursorOffset, cursorOffset)];
 			} catch (err) {
 				if (err.constructor.name === 'UndefinedParserError') return
-				
+
 				// See if it's a proper syntax error.
 				const lineData = err.message.match(/\((\d+):(\d+)\)\n/m);
 				if (!lineData) {
 					console.error(err, err.stack);
 					return
 				}
-				
+
 				const issue = new Issue();
 				issue.message = err.message;
 				issue.severity = IssueSeverity.Error;
@@ -284,12 +331,13 @@ class FormattingService {
 			reject = _reject;
 		});
 
+		const expectedIgnoreDir = nova.workspace.path || nova.path.dirname(path);
 		const process = new Process('/usr/bin/env', {
 			args: [
 				'node',
 				nova.path.join(nova.extension.path, 'Scripts', 'config.js'),
 				this.modulePath,
-				nova.path.join(nova.workspace.path, '.prettierignore'),
+				nova.path.join(expectedIgnoreDir, '.prettierignore'),
 				path,
 			],
 		});

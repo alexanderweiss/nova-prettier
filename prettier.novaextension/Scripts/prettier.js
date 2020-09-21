@@ -22,10 +22,16 @@ async function findPrettier() {
 	});
 
 	process.onStdout((result) => {
-		if (!result) resolve(null);
+		if (!result) return resolve(null)
 
 		const [path, name] = result.split(':');
-		if (!name.startsWith('prettier@')) resolve(null);
+		if (!name.startsWith('prettier@')) return resolve(null)
+		if (path === nova.workspace.path) {
+			console.log(
+				`You seem to be working on Prettier! The extension doesn't work without Prettier built, so using the built-in Prettier instead.`
+			);
+			return resolve(null)
+		}
 
 		resolve(path);
 	});

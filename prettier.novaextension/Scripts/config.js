@@ -13,4 +13,4 @@ const path = require('path')
 	});
 
 	console.log(JSON.stringify({ config, info }, null, null));
-})();
+})().catch(console.error);
