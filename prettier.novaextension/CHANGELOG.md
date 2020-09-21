@@ -1,3 +1,15 @@
+## [1.3.0] - 2020-09-21
+
+### Added
+
+- Support formatting of files in non-project windows
+- Support working on the Prettier repository
+- Automatically update the included installation of Prettier if the extension includes a new version
+
+### Changed
+
+- **(Breaking)** Updated to Prettier 2.1.2.
+
 ## [1.2.1] - 2020-09-17
 
 ### Added
