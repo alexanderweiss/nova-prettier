@@ -17,6 +17,7 @@
 			{
 				"title": "Format with Prettier",
 				"command": "prettier.format",
+				"shortcut": "option-shift-f",
 				"filters": {
 					"syntaxes": [
 						"json",
