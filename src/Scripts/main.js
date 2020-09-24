@@ -21,23 +21,23 @@ class FormattingService {
 		this.toggleFormatOnSave(
 			nova.workspace.config.get('prettier.format-on-save')
 		)
+
+		nova.workspace.onDidAddTextEditor(this.didAddTextEditor)
 	}
 
 	toggleFormatOnSave(enabled) {
+		this.enabled = enabled
 		if (enabled) {
 			nova.workspace.textEditors.forEach(this.didAddTextEditor)
-			this.onDidAddTextEditorListener = nova.workspace.onDidAddTextEditor(
-				this.didAddTextEditor
-			)
 		} else {
-			if (this.onDidAddTextEditorListener)
-				this.onDidAddTextEditorListener.dispose()
 			this.saveListeners.forEach((listener) => listener.dispose())
 			this.saveListeners.clear()
 		}
 	}
 
 	didAddTextEditor(editor) {
+		if (!this.enabled) return
+
 		if (this.saveListeners.has(editor)) return
 		this.saveListeners.set(editor, editor.onWillSave(this.format))
 	}
