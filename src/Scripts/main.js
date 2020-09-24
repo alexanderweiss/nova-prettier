@@ -14,20 +14,54 @@ class FormattingService {
 		this.issueCollection = new IssueCollection()
 		this.configs = new Map()
 
+		this.setupConfiguration()
+		nova.workspace.onDidAddTextEditor(this.didAddTextEditor)
+	}
+
+	setupConfiguration() {
 		nova.workspace.config.observe(
 			'prettier.format-on-save',
 			this.toggleFormatOnSave
 		)
-		this.toggleFormatOnSave(
-			nova.workspace.config.get('prettier.format-on-save')
-		)
-
-		nova.workspace.onDidAddTextEditor(this.didAddTextEditor)
+		nova.config.observe('prettier.format-on-save', this.toggleFormatOnSave)
 	}
 
-	toggleFormatOnSave(enabled) {
-		this.enabled = enabled
-		if (enabled) {
+	getFormatOnSaveWorkspaceConfig() {
+		switch (nova.workspace.config.get('prettier.format-on-save')) {
+			case 'Enable':
+				return true
+			case 'Disable':
+				return false
+			// Upgrade old format
+			case true:
+				nova.workspace.config.set(
+					'prettier.format-on-save',
+					nova.config.get('prettier.format-on-save') === true
+						? 'Global Default'
+						: 'Enable'
+				)
+				return true
+			case false:
+				nova.workspace.config.set(
+					'prettier.format-on-save',
+					nova.config.get('prettier.format-on-save') === false
+						? 'Global Default'
+						: 'Disable'
+				)
+				return false
+			// No preference -> "Global default"
+			default:
+				return null
+		}
+	}
+
+	toggleFormatOnSave() {
+		this.enabled =
+			this.getFormatOnSaveWorkspaceConfig() ??
+			nova.config.get('prettier.format-on-save') ??
+			true
+
+		if (this.enabled) {
 			nova.workspace.textEditors.forEach(this.didAddTextEditor)
 		} else {
 			this.saveListeners.forEach((listener) => listener.dispose())

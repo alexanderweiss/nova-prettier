@@ -38,13 +38,23 @@
 			}
 		]
 	},
+	"config": [
+		{
+			"key": "prettier.format-on-save",
+			"title": "Format on save",
+			"description": "Whether to format documents when saved. (Can be overriden in project settings)",
+			"type": "boolean",
+			"default": true
+		}
+	],
 	"config-workspace": [
 		{
 			"key": "prettier.format-on-save",
 			"title": "Format on save",
 			"description": "Whether to format documents when saved.",
-			"type": "boolean",
-			"default": true
+			"type": "enum",
+			"values": ["Global Default", "Enable", "Disable"],
+			"default": "Global Default"
 		}
 	]
 }
