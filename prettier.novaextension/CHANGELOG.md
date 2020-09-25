@@ -1,14 +1,30 @@
+## [1.4.0] - 2020-09-25
+
+### Added
+
+- Set a default keyboard shortcut for `Format with Prettier` command: ⌥⇧F
+- Added a global `Format on save` preference that can be overridden by project preferences
+- Support formatting of HTML in PHP files
+
+### Changed
+
+- Fall back to bundled Prettier when loading the project's Prettier installation fails
+
+### Fixed
+
+- Fixes files opened after disabling formatting on save getting formatted on save
+
 ## [1.3.0] - 2020-09-21
 
 ### Added
 
 - Support formatting of files in non-project windows
 - Support working on the Prettier repository
-- Automatically update the included installation of Prettier if the extension includes a new version
+- Automatically update the bundled installation of Prettier if the extension includes a new version
 
 ### Changed
 
-- **(Breaking)** Updated to Prettier 2.1.2.
+- **(Breaking)** Updated bundle Prettier to 2.1.2.
 
 ## [1.2.1] - 2020-09-17
 
