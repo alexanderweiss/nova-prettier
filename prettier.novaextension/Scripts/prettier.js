@@ -59,6 +59,21 @@ function relativePath(path) {
 	)
 }
 
+function load(modulePath) {
+	return {
+		modulePath,
+		prettier: require(relativePath(
+			nova.path.join(modulePath, 'standalone.js')
+		)),
+		parsers: [
+			...nova.fs
+				.listdir(modulePath)
+				.filter((p) => p.match(/^parser-.*?\.js$/))
+				.map((p) => require(relativePath(nova.path.join(modulePath, p)))),
+		],
+	}
+}
+
 module.exports = async function () {
 	if (loaded) return loaded
 
@@ -70,26 +85,24 @@ module.exports = async function () {
 		console.warn('Error trying to find workspace Prettier', err);
 	}
 
-	const modulePath =
-		workspaceModulePath ||
-		nova.path.join(nova.extension.path, 'node_modules', 'prettier');
+	if (workspaceModulePath) {
+		try {
+			console.log(`Loading project prettier at ${workspaceModulePath}`);
+			loaded = load(workspaceModulePath);
+		} catch (err) {
+			console.warn(`Couldn't load project prettier: ${err}`, err.stack);
+		}
+	}
 
-	console.log(
-		`Using prettier from ${modulePath} (extension located at: ${nova.extension.path})`
-	);
-
-	loaded = {
-		modulePath,
-		prettier: require(relativePath(
-			nova.path.join(modulePath, 'standalone.js')
-		)),
-		parsers: [
-			...nova.fs
-				.listdir(modulePath)
-				.filter((p) => p.match(/^parser-.*?\.js$/))
-				.map((p) => require(relativePath(nova.path.join(modulePath, p)))),
-		],
-	};
+	if (!loaded) {
+		const extensionModulePath = nova.path.join(
+			nova.extension.path,
+			'node_modules',
+			'prettier'
+		);
+		console.log(`Loading bundled prettier at ${extensionModulePath}`);
+		loaded = load(extensionModulePath);
+	}
 
 	return loaded
 };

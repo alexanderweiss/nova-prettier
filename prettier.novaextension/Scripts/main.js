@@ -222,30 +222,64 @@ class FormattingService {
 		this.issueCollection = new IssueCollection();
 		this.configs = new Map();
 
+		this.setupConfiguration();
+		nova.workspace.onDidAddTextEditor(this.didAddTextEditor);
+	}
+
+	setupConfiguration() {
 		nova.workspace.config.observe(
 			'prettier.format-on-save',
 			this.toggleFormatOnSave
 		);
-		this.toggleFormatOnSave(
-			nova.workspace.config.get('prettier.format-on-save')
-		);
+		nova.config.observe('prettier.format-on-save', this.toggleFormatOnSave);
 	}
 
-	toggleFormatOnSave(enabled) {
-		if (enabled) {
+	getFormatOnSaveWorkspaceConfig() {
+		switch (nova.workspace.config.get('prettier.format-on-save')) {
+			case 'Enable':
+				return true
+			case 'Disable':
+				return false
+			// Upgrade old format
+			case true:
+				nova.workspace.config.set(
+					'prettier.format-on-save',
+					nova.config.get('prettier.format-on-save') === true
+						? 'Global Default'
+						: 'Enable'
+				);
+				return true
+			case false:
+				nova.workspace.config.set(
+					'prettier.format-on-save',
+					nova.config.get('prettier.format-on-save') === false
+						? 'Global Default'
+						: 'Disable'
+				);
+				return false
+			// No preference -> "Global default"
+			default:
+				return null
+		}
+	}
+
+	toggleFormatOnSave() {
+		this.enabled =
+			this.getFormatOnSaveWorkspaceConfig() ??
+			nova.config.get('prettier.format-on-save') ??
+			true;
+
+		if (this.enabled) {
 			nova.workspace.textEditors.forEach(this.didAddTextEditor);
-			this.onDidAddTextEditorListener = nova.workspace.onDidAddTextEditor(
-				this.didAddTextEditor
-			);
 		} else {
-			if (this.onDidAddTextEditorListener)
-				this.onDidAddTextEditorListener.dispose();
 			this.saveListeners.forEach((listener) => listener.dispose());
 			this.saveListeners.clear();
 		}
 	}
 
 	didAddTextEditor(editor) {
+		if (!this.enabled) return
+
 		if (this.saveListeners.has(editor)) return
 		this.saveListeners.set(editor, editor.onWillSave(this.format));
 	}
@@ -285,6 +319,9 @@ class FormattingService {
 						...(document.path
 							? { filepath: document.path }
 							: { parser: this.parserForSyntax(document.syntax) }),
+						// Force HTML parser for PHP syntax because Nova considers PHP a
+						// sub-syntax of HTML and enables the command.
+						...(document.syntax === 'php' ? { parser: 'html' } : {}),
 						cursorOffset: editor.selectedRange.end,
 						plugins: this.parsers,
 					}
