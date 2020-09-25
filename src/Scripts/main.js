@@ -111,6 +111,9 @@ class FormattingService {
 						...(document.path
 							? { filepath: document.path }
 							: { parser: this.parserForSyntax(document.syntax) }),
+						// Force HTML parser for PHP syntax because Nova considers PHP a
+						// sub-syntax of HTML and enables the command.
+						...(document.syntax === 'php' ? { parser: 'html' } : {}),
 						cursorOffset: editor.selectedRange.end,
 						plugins: this.parsers,
 					}
