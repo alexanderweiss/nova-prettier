@@ -37,7 +37,7 @@ class FormattingService {
 	startPrettierService() {
 		if (this.prettierService) return
 
-		console.log('Starting separate Prettier service')
+		console.log('Starting Prettier service')
 
 		this.prettierService = new Process('/usr/bin/env', {
 			args: [
@@ -54,7 +54,7 @@ class FormattingService {
 	stopPrettierService() {
 		if (!this.prettierService) return
 
-		console.log('Stopping separate Prettier service')
+		console.log('Stopping Prettier service')
 
 		this.prettierService.terminate()
 		this.prettierService = null
@@ -62,6 +62,8 @@ class FormattingService {
 
 	prettierServiceDidExit(exitCode) {
 		if (exitCode === 0) return
+
+		console.error(`Prettier service exited with code ${exitCode}`)
 
 		this.prettierService = null
 
@@ -174,7 +176,7 @@ class FormattingService {
 			// See if it's a proper syntax error.
 			const lineData = error.message.match(/\((\d+):(\d+)\)\n/m)
 			if (!lineData) {
-				console.error(error, error.stack, error.errorCode)
+				console.error(error, error.stack)
 				return
 			}
 

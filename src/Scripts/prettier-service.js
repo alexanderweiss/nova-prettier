@@ -1,8 +1,9 @@
 const JsonRpcService = require('./json-rpc.js')
-const fs = require('fs')
 
 class PrettierService {
 	constructor() {
+		this.format = this.format.bind(this)
+
 		const [, , prettierPath] = process.argv
 		this.prettier = require(prettierPath)
 
@@ -10,7 +11,7 @@ class PrettierService {
 		this.jsonRpc.onRequest('format', this.format)
 	}
 
-	format = async ({ text, pathForConfig, ignorePath, syntax, options }) => {
+	async format({ text, pathForConfig, ignorePath, options }) {
 		try {
 			// Don't format if this file is ignored
 			const info = await this.prettier.getFileInfo(pathForConfig, {
