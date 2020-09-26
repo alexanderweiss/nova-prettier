@@ -255,7 +255,7 @@ class FormattingService {
 				'node',
 				nova.path.join(nova.extension.path, 'Scripts', 'config.js'),
 				this.modulePath,
-				getIgnorePath(path),
+				this.getIgnorePath(path),
 				path,
 			],
 		})
