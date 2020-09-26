@@ -2,10 +2,14 @@
 
 Code formatting using Prettier, right in Nova.
 
-- Formats on save (can be disabled in Project settings), or using `Editor > Format with Prettier` (⌥⇧F).
-- Supports all languages supported by Prettier (though plugins are not supported): `json`, `html`, `javascript`, `jsx`, `flow`, `typescript`, `vue`, `angular`, `css`, `less`, `scss`, `graphql`, `markdown`, `yaml`.
+- Formats on save (can be changed per project), or using `Editor > Format with Prettier` (⌥⇧F).
+- Supports all languages supported by Prettier: `json`, `html`, `javascript`, `jsx`, `flow`, `typescript`, `vue`, `angular`, `css`, `less`, `scss`, `graphql`, `markdown`, `yaml`.
 - Supports [standard Prettier configuration](https://prettier.io/docs/en/configuration.html), and [.prettierignore](https://prettier.io/docs/en/ignore.html) files.
 - Uses the Prettier installed in your project (or built-in Prettier if you don't have any).
+
+## Using plugins
+
+If you want to use Prettier plugins just enable the `Run Prettier in a separate process (experimental)` option in the extension's preferences in the Extension Library. Please [report any issues](https://github.com/alexanderweiss/nova-prettier/issues) you have with this option enabled.
 
 ## Ignoring files
 
