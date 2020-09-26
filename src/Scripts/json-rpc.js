@@ -1,9 +1,11 @@
-const fs = require('fs')
 const EventEmitter = require('events')
 
 const DEFAULT_BUFFER_SIZE = 8192
 const CR = Buffer.from('\r', 'ascii')[0]
 const LF = Buffer.from('\n', 'ascii')[0]
+
+const READ_EXIT_CODE = 50
+const MISSING_ID_EXIT_CODE = 51
 
 class JsonRpcBuffer extends EventEmitter {
 	constructor() {
@@ -88,6 +90,9 @@ class JsonRpcBuffer extends EventEmitter {
 
 class JsonRpcService {
 	constructor(readStream, writeStream) {
+		this.processRequest = this.processRequest.bind(this)
+		this.readFromStream = this.readFromStream.bind(this)
+
 		this.readStream = readStream
 		this.writeStream = writeStream
 
@@ -102,15 +107,22 @@ class JsonRpcService {
 		this.requestHandlers.set(method, handler)
 	}
 
-	readFromStream = () => {
+	async readFromStream() {
 		let chunk
 		while ((chunk = this.readStream.read()) !== null) {
-			this.buffer.append(chunk)
+			try {
+				this.buffer.append(chunk)
+			} catch (err) {
+				// TODO: Document error codes
+				process.exit(READ_EXIT_CODE)
+			}
 		}
 	}
 
-	processRequest = async (header, request) => {
-		if (!Object.prototype.hasOwnProperty.call(request, 'id')) return
+	async processRequest(_header, request) {
+		if (!Object.prototype.hasOwnProperty.call(request, 'id')) {
+			process.exit(MISSING_ID_EXIT_CODE)
+		}
 
 		try {
 			const handler = this.requestHandlers.get(request.method)
