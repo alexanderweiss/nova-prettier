@@ -122,6 +122,7 @@ class FormattingService {
 		const params = {
 			text,
 			pathForConfig: document.path || nova.workspace.path,
+			ignorePath: this.getIgnorePath(document.path),
 			syntax: document.syntax,
 			options: {
 				...(document.path
@@ -145,6 +146,10 @@ class FormattingService {
 			error = err
 		}
 
+		if (!result) 
+			return
+		
+
 		if (error) {
 			const name = error.name || error.constructor.name
 			if (name === 'UndefinedParserError') return
@@ -163,10 +168,6 @@ class FormattingService {
 			issue.column = lineData[2]
 
 			this.issueCollection.set(document.uri, [issue])
-			return
-		}
-
-		if (!result) {
 			return
 		}
 
@@ -208,6 +209,11 @@ class FormattingService {
 		})
 	}
 
+	getIgnorePath(path) {
+		const expectedIgnoreDir = nova.workspace.path || nova.path.dirname(path)
+		return nova.path.join(expectedIgnoreDir, '.prettierignore')
+	}
+
 	async getConfigForPath(path) {
 		// TODO: Invalidate cache at some point?
 		if (this.configs.has(path)) return this.configs.get(path)
@@ -225,13 +231,12 @@ class FormattingService {
 			reject = _reject
 		})
 
-		const expectedIgnoreDir = nova.workspace.path || nova.path.dirname(path)
 		const process = new Process('/usr/bin/env', {
 			args: [
 				'node',
 				nova.path.join(nova.extension.path, 'Scripts', 'config.js'),
 				this.modulePath,
-				nova.path.join(expectedIgnoreDir, '.prettierignore'),
+				getIgnorePath(path),
 				path,
 			],
 		})

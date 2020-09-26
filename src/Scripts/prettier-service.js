@@ -11,15 +11,23 @@ class PrettierService {
 		this.jsonRpc.onRequest('format', this.format)
 	}
 
-	format = async ({ text, pathForConfig, syntax, options }) => {
+	format = async ({ text, pathForConfig, ignorePath, syntax, options }) => {
 		try {
+			// Don't format if this file is ignored
+			const info = await this.prettier.getFileInfo(pathForConfig, {
+				ignorePath,
+				withNodeModules: false,
+			})
+			if (info.ignored) return null
+
 			const config = await this.prettier.resolveConfig(pathForConfig)
-			const info = await this.prettier.getFileInfo(pathForConfig)
+
 			return this.prettier.formatWithCursor(text, {
 				...config,
 				...options,
 			})
 		} catch (error) {
+			// Return error as object; JSON-RPC errors don't work well.
 			return {
 				error: {
 					name: error.constructor.name,
