@@ -48,6 +48,10 @@ class FormattingService {
 		})
 		// TODO: Handle crash
 		this.prettierService.start()
+
+		// this.prettierService.onRequest('format', () => {
+		// 	throw new Error('Test')
+		// })
 	}
 
 	stopPrettierService() {
@@ -131,22 +135,29 @@ class FormattingService {
 
 		// Resolve config if we know a path to check
 		let result
+		let error
 		try {
 			result = this.prettierService
 				? await this.prettierService.request('format', params)
 				: await this.formatLegacy(params)
+			if (result.error) error = result.error
 		} catch (err) {
-			if (err.constructor.name === 'UndefinedParserError') return
+			error = err
+		}
+
+		if (error) {
+			const name = error.name || error.constructor.name
+			if (name === 'UndefinedParserError') return
 
 			// See if it's a proper syntax error.
-			const lineData = err.message.match(/\((\d+):(\d+)\)\n/m)
+			const lineData = error.message.match(/\((\d+):(\d+)\)\n/m)
 			if (!lineData) {
-				console.error(err, err.stack)
+				console.error(error, error.stack, error.errorCode)
 				return
 			}
 
 			const issue = new Issue()
-			issue.message = err.message
+			issue.message = error.message
 			issue.severity = IssueSeverity.Error
 			issue.line = lineData[1]
 			issue.column = lineData[2]
