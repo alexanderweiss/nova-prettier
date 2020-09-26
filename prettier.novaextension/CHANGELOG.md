@@ -1,3 +1,14 @@
+## [1.5.0] - 2020-09-26
+
+### Added
+
+- Support for Prettier plugins (requires enabling `Run Prettier in a separate process (experimental)`)
+
+### Changed
+
+- Improved performance when formatting large files (requires enabling `Run Prettier in a separate process (experimental)`)
+- Stop formatting PHP, unless the PHP plugin is used
+
 ## [1.4.0] - 2020-09-25
 
 ### Added
