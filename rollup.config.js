@@ -16,6 +16,20 @@ export default [
 		output: { file: 'prettier.novaextension/Scripts/config.js', format: 'cjs' },
 	},
 	{
+		input: 'src/Scripts/prettier-service.js',
+		output: {
+			file: 'prettier.novaextension/Scripts/prettier-service.js',
+			format: 'cjs',
+		},
+	},
+	{
+		input: 'src/Scripts/json-rpc.js',
+		output: {
+			file: 'prettier.novaextension/Scripts/json-rpc.js',
+			format: 'cjs',
+		},
+	},
+	{
 		input: 'src/Scripts/prettier.js',
 		output: {
 			file: 'prettier.novaextension/Scripts/prettier.js',

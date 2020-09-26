@@ -8,6 +8,7 @@ class FormattingService {
 
 		this.didAddTextEditor = this.didAddTextEditor.bind(this)
 		this.toggleFormatOnSave = this.toggleFormatOnSave.bind(this)
+		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this)
 		this.format = this.format.bind(this)
 
 		this.saveListeners = new Map()
@@ -24,6 +25,63 @@ class FormattingService {
 			this.toggleFormatOnSave
 		)
 		nova.config.observe('prettier.format-on-save', this.toggleFormatOnSave)
+		nova.config.observe('prettier.experimental.prettier-service', (enabled) => {
+			if (enabled) {
+				this.startPrettierService()
+			} else {
+				this.stopPrettierService()
+			}
+		})
+	}
+
+	startPrettierService() {
+		if (this.prettierService) return
+
+		console.log('Starting Prettier service')
+
+		this.prettierService = new Process('/usr/bin/env', {
+			args: [
+				'node',
+				nova.path.join(nova.extension.path, 'Scripts', 'prettier-service.js'),
+				this.modulePath,
+			],
+			stdio: 'jsonrpc',
+		})
+		this.prettierService.onDidExit(this.prettierServiceDidExit)
+		this.prettierService.start()
+	}
+
+	stopPrettierService() {
+		if (!this.prettierService) return
+
+		console.log('Stopping Prettier service')
+
+		this.prettierService.terminate()
+		this.prettierService = null
+	}
+
+	prettierServiceDidExit(exitCode) {
+		if (!this.prettierService) return
+
+		console.error(`Prettier service exited with code ${exitCode}`)
+
+		this.prettierService = null
+
+		if (this.prettierServiceCrashedRecently) {
+			showActionableError(
+				'prettier-service-frequent-crashes-error',
+				'Prettier stopped working twice',
+				'There may be a problem. To try restarting it again, choose Restart. If the problem persist, check the Extension Console for more info or report an issue through the Extension Library.',
+				'Restart',
+				(r) => r && this.startPrettierService()
+			)
+			return
+		}
+
+		this.prettierServiceCrashedRecently = true
+		setTimeout(() => (this.prettierServiceCrashedRecently = false), 5000)
+
+		this.startPrettierService()
 	}
 
 	getFormatOnSaveWorkspaceConfig() {
@@ -79,10 +137,73 @@ class FormattingService {
 	async format(editor) {
 		const { document } = editor
 
+		const documentRange = new Range(0, document.length)
+		const text = editor.getTextInRange(documentRange)
+
+		const params = {
+			text,
+			pathForConfig: document.path || nova.workspace.path,
+			ignorePath: this.getIgnorePath(document.path),
+			syntax: document.syntax,
+			options: {
+				...(document.path
+					? { filepath: document.path }
+					: { parser: this.parserForSyntax(syntax) }),
+				cursorOffset: editor.selectedRange.end,
+			},
+		}
+
+		this.issueCollection.set(document.uri, [])
+
+		// Resolve config if we know a path to check
+		let result
+		let error
+		try {
+			result = this.prettierService
+				? await this.prettierService.request('format', params)
+				: await this.formatLegacy(params)
+			if (result.error) error = result.error
+		} catch (err) {
+			error = err
+		}
+
+		if (!result) return
+
+		if (error) {
+			const name = error.name || error.constructor.name
+			if (name === 'UndefinedParserError') return
+
+			// See if it's a proper syntax error.
+			const lineData = error.message.match(/\((\d+):(\d+)\)\n/m)
+			if (!lineData) {
+				console.error(error, error.stack)
+				return
+			}
+
+			const issue = new Issue()
+			issue.message = error.message
+			issue.severity = IssueSeverity.Error
+			issue.line = lineData[1]
+			issue.column = lineData[2]
+
+			this.issueCollection.set(document.uri, [issue])
+			return
+		}
+
+		const { formatted, cursorOffset } = result
+
+		editor
+			.edit((e) => {
+				e.replace(documentRange, formatted)
+				editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
+			})
+			.catch((err) => console.error(err, err.stack))
+	}
+
+	async formatLegacy({ text, syntax, pathForConfig, options }) {
 		let config = {}
 		let info = {}
-		// Resolve config if we know a path to check
-		const pathForConfig = document.path || nova.workspace.path
+
 		if (pathForConfig) {
 			try {
 				;({ config, info } = await this.getConfigForPath(pathForConfig))
@@ -91,56 +212,25 @@ class FormattingService {
 					`Unable to get config for ${document.path}: ${err}`,
 					err.stack
 				)
-				this.showConfigResolutionError(document.path)
+				this.showConfigResolutionError(pathForConfig)
 			}
 		}
 
-		if (document.path && info.ignored === true) return
+		if (options.filepath && info.ignored === true) return null
 
-		const documentRange = new Range(0, document.length)
-		this.issueCollection.set(document.uri, [])
-
-		await editor.edit((e) => {
-			const text = editor.getTextInRange(documentRange)
-
-			try {
-				const { formatted, cursorOffset } = this.prettier.formatWithCursor(
-					text,
-					{
-						...config,
-						...(document.path
-							? { filepath: document.path }
-							: { parser: this.parserForSyntax(document.syntax) }),
-						// Force HTML parser for PHP syntax because Nova considers PHP a
-						// sub-syntax of HTML and enables the command.
-						...(document.syntax === 'php' ? { parser: 'html' } : {}),
-						cursorOffset: editor.selectedRange.end,
-						plugins: this.parsers,
-					}
-				)
-
-				if (formatted === text) return
-				e.replace(documentRange, formatted)
-				editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
-			} catch (err) {
-				if (err.constructor.name === 'UndefinedParserError') return
-
-				// See if it's a proper syntax error.
-				const lineData = err.message.match(/\((\d+):(\d+)\)\n/m)
-				if (!lineData) {
-					console.error(err, err.stack)
-					return
-				}
-
-				const issue = new Issue()
-				issue.message = err.message
-				issue.severity = IssueSeverity.Error
-				issue.line = lineData[1]
-				issue.column = lineData[2]
-
-				this.issueCollection.set(document.uri, [issue])
-			}
+		return this.prettier.formatWithCursor(text, {
+			...config,
+			...options,
+			// Force HTML parser for PHP syntax because Nova considers PHP a
+			// sub-syntax of HTML and enables the command.
+			...(syntax === 'php' ? { parser: 'html' } : {}),
+			plugins: this.parsers,
 		})
+	}
+
+	getIgnorePath(path) {
+		const expectedIgnoreDir = nova.workspace.path || nova.path.dirname(path)
+		return nova.path.join(expectedIgnoreDir, '.prettierignore')
 	}
 
 	async getConfigForPath(path) {
@@ -160,13 +250,12 @@ class FormattingService {
 			reject = _reject
 		})
 
-		const expectedIgnoreDir = nova.workspace.path || nova.path.dirname(path)
 		const process = new Process('/usr/bin/env', {
 			args: [
 				'node',
 				nova.path.join(nova.extension.path, 'Scripts', 'config.js'),
 				this.modulePath,
-				nova.path.join(expectedIgnoreDir, '.prettierignore'),
+				this.getIgnorePath(path),
 				path,
 			],
 		})
@@ -221,6 +310,19 @@ function showError(id, title, body) {
 	request.actions = [nova.localize('OK')]
 
 	nova.notifications.add(request).catch((err) => console.error(err, err.stack))
+}
+
+function showActionableError(id, title, body, action, callback) {
+	let request = new NotificationRequest(id)
+
+	request.title = nova.localize(title)
+	request.body = nova.localize(body)
+	request.actions = [nova.localize('Ignore'), nova.localize(action)]
+
+	nova.notifications
+		.add(request)
+		.then((response) => callback(response.actionIdx === 1))
+		.catch((err) => console.error(err, err.stack))
 }
 
 exports.activate = async function () {

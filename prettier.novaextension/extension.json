@@ -46,6 +46,13 @@
 			"description": "Whether to format documents when saved. (Can be overriden in project settings)",
 			"type": "boolean",
 			"default": true
+		},
+		{
+			"key": "prettier.experimental.prettier-service",
+			"title": "Run Prettier in a separate process (experimental)",
+			"description": "This improves formatting speed of large files and adds support for plugins",
+			"type": "boolean",
+			"default": false
 		}
 	],
 	"config-workspace": [
