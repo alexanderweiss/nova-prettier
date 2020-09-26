@@ -7,7 +7,6 @@ class PrettierService {
 		this.prettier = require(prettierPath)
 
 		this.jsonRpc = new JsonRpcService(process.stdin, process.stdout)
-
 		this.jsonRpc.onRequest('format', this.format)
 	}
 

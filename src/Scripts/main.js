@@ -8,6 +8,7 @@ class FormattingService {
 
 		this.didAddTextEditor = this.didAddTextEditor.bind(this)
 		this.toggleFormatOnSave = this.toggleFormatOnSave.bind(this)
+		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this)
 		this.format = this.format.bind(this)
 
 		this.saveListeners = new Map()
@@ -46,12 +47,8 @@ class FormattingService {
 			],
 			stdio: 'jsonrpc',
 		})
-		// TODO: Handle crash
+		this.prettierService.onDidExit(this.prettierServiceDidExit)
 		this.prettierService.start()
-
-		// this.prettierService.onRequest('format', () => {
-		// 	throw new Error('Test')
-		// })
 	}
 
 	stopPrettierService() {
@@ -61,6 +58,28 @@ class FormattingService {
 
 		this.prettierService.terminate()
 		this.prettierService = null
+	}
+
+	prettierServiceDidExit(exitCode) {
+		if (exitCode === 0) return
+
+		this.prettierService = null
+
+		if (this.prettierServiceCrashedRecently) {
+			showActionableError(
+				'prettier-service-frequent-crashes-error',
+				'Prettier stopped working twice',
+				'There may be a problem. To try restarting it again, choose Restart. If the problem persist, check the Extension Console for more info or report an issue through the Extension Library.',
+				'Restart',
+				(r) => r && this.startPrettierService()
+			)
+			return
+		}
+
+		this.prettierServiceCrashedRecently = true
+		setTimeout(() => (this.prettierServiceCrashedRecently = false), 5000)
+
+		this.startPrettierService()
 	}
 
 	getFormatOnSaveWorkspaceConfig() {
@@ -146,9 +165,7 @@ class FormattingService {
 			error = err
 		}
 
-		if (!result) 
-			return
-		
+		if (!result) return
 
 		if (error) {
 			const name = error.name || error.constructor.name
@@ -291,6 +308,19 @@ function showError(id, title, body) {
 	request.actions = [nova.localize('OK')]
 
 	nova.notifications.add(request).catch((err) => console.error(err, err.stack))
+}
+
+function showActionableError(id, title, body, action, callback) {
+	let request = new NotificationRequest(id)
+
+	request.title = nova.localize(title)
+	request.body = nova.localize(body)
+	request.actions = [nova.localize('Ignore'), nova.localize(action)]
+
+	nova.notifications
+		.add(request)
+		.then((response) => callback(response.actionIdx === 1))
+		.catch((err) => console.error(err, err.stack))
 }
 
 exports.activate = async function () {
