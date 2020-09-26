@@ -61,7 +61,7 @@ class FormattingService {
 	}
 
 	prettierServiceDidExit(exitCode) {
-		if (exitCode === 0) return
+		if (!this.prettierService) return
 
 		console.error(`Prettier service exited with code ${exitCode}`)
 
