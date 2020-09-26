@@ -24,6 +24,39 @@ class FormattingService {
 			this.toggleFormatOnSave
 		)
 		nova.config.observe('prettier.format-on-save', this.toggleFormatOnSave)
+		nova.config.observe('prettier.experimental.prettier-service', (enabled) => {
+			if (enabled) {
+				this.startPrettierService()
+			} else {
+				this.stopPrettierService()
+			}
+		})
+	}
+
+	startPrettierService() {
+		if (this.prettierService) return
+
+		console.log('Starting separate Prettier service')
+
+		this.prettierService = new Process('/usr/bin/env', {
+			args: [
+				'node',
+				nova.path.join(nova.extension.path, 'Scripts', 'prettier-service.js'),
+				this.modulePath,
+			],
+			stdio: 'jsonrpc',
+		})
+		// TODO: Handle crash
+		this.prettierService.start()
+	}
+
+	stopPrettierService() {
+		if (!this.prettierService) return
+
+		console.log('Stopping separate Prettier service')
+
+		this.prettierService.terminate()
+		this.prettierService = null
 	}
 
 	getFormatOnSaveWorkspaceConfig() {
@@ -79,10 +112,67 @@ class FormattingService {
 	async format(editor) {
 		const { document } = editor
 
+		const documentRange = new Range(0, document.length)
+		const text = editor.getTextInRange(documentRange)
+
+		const params = {
+			text,
+			pathForConfig: document.path || nova.workspace.path,
+			syntax: document.syntax,
+			options: {
+				...(document.path
+					? { filepath: document.path }
+					: { parser: this.parserForSyntax(syntax) }),
+				cursorOffset: editor.selectedRange.end,
+			},
+		}
+
+		this.issueCollection.set(document.uri, [])
+
+		// Resolve config if we know a path to check
+		let result
+		try {
+			result = this.prettierService
+				? await this.prettierService.request('format', params)
+				: await this.formatLegacy(params)
+		} catch (err) {
+			if (err.constructor.name === 'UndefinedParserError') return
+
+			// See if it's a proper syntax error.
+			const lineData = err.message.match(/\((\d+):(\d+)\)\n/m)
+			if (!lineData) {
+				console.error(err, err.stack)
+				return
+			}
+
+			const issue = new Issue()
+			issue.message = err.message
+			issue.severity = IssueSeverity.Error
+			issue.line = lineData[1]
+			issue.column = lineData[2]
+
+			this.issueCollection.set(document.uri, [issue])
+			return
+		}
+
+		if (!result) {
+			return
+		}
+
+		const { formatted, cursorOffset } = result
+
+		editor
+			.edit((e) => {
+				e.replace(documentRange, formatted)
+				editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
+			})
+			.catch((err) => console.error(err, err.stack))
+	}
+
+	async formatLegacy({ text, syntax, pathForConfig, options }) {
 		let config = {}
 		let info = {}
-		// Resolve config if we know a path to check
-		const pathForConfig = document.path || nova.workspace.path
+
 		if (pathForConfig) {
 			try {
 				;({ config, info } = await this.getConfigForPath(pathForConfig))
@@ -91,55 +181,19 @@ class FormattingService {
 					`Unable to get config for ${document.path}: ${err}`,
 					err.stack
 				)
-				this.showConfigResolutionError(document.path)
+				this.showConfigResolutionError(pathForConfig)
 			}
 		}
 
-		if (document.path && info.ignored === true) return
+		if (options.filepath && info.ignored === true) return null
 
-		const documentRange = new Range(0, document.length)
-		this.issueCollection.set(document.uri, [])
-
-		await editor.edit((e) => {
-			const text = editor.getTextInRange(documentRange)
-
-			try {
-				const { formatted, cursorOffset } = this.prettier.formatWithCursor(
-					text,
-					{
-						...config,
-						...(document.path
-							? { filepath: document.path }
-							: { parser: this.parserForSyntax(document.syntax) }),
-						// Force HTML parser for PHP syntax because Nova considers PHP a
-						// sub-syntax of HTML and enables the command.
-						...(document.syntax === 'php' ? { parser: 'html' } : {}),
-						cursorOffset: editor.selectedRange.end,
-						plugins: this.parsers,
-					}
-				)
-
-				if (formatted === text) return
-				e.replace(documentRange, formatted)
-				editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
-			} catch (err) {
-				if (err.constructor.name === 'UndefinedParserError') return
-
-				// See if it's a proper syntax error.
-				const lineData = err.message.match(/\((\d+):(\d+)\)\n/m)
-				if (!lineData) {
-					console.error(err, err.stack)
-					return
-				}
-
-				const issue = new Issue()
-				issue.message = err.message
-				issue.severity = IssueSeverity.Error
-				issue.line = lineData[1]
-				issue.column = lineData[2]
-
-				this.issueCollection.set(document.uri, [issue])
-			}
+		return this.prettier.formatWithCursor(text, {
+			...config,
+			...options,
+			// Force HTML parser for PHP syntax because Nova considers PHP a
+			// sub-syntax of HTML and enables the command.
+			...(syntax === 'php' ? { parser: 'html' } : {}),
+			plugins: this.parsers,
 		})
 	}
 
