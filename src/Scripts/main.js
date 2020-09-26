@@ -203,6 +203,10 @@ class FormattingService {
 	async formatLegacy({ text, syntax, pathForConfig, options }) {
 		let config = {}
 		let info = {}
+		
+		// Don't handle PHP syntax. Required because Nova considers PHP a
+		// sub-syntax of HTML and enables the command.
+		if (syntax === 'php') return null
 
 		if (pathForConfig) {
 			try {
@@ -221,9 +225,6 @@ class FormattingService {
 		return this.prettier.formatWithCursor(text, {
 			...config,
 			...options,
-			// Force HTML parser for PHP syntax because Nova considers PHP a
-			// sub-syntax of HTML and enables the command.
-			...(syntax === 'php' ? { parser: 'html' } : {}),
 			plugins: this.parsers,
 		})
 	}
