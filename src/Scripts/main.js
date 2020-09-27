@@ -191,6 +191,7 @@ class FormattingService {
 		}
 
 		const { formatted, cursorOffset } = result
+		if (formatted === text) return
 
 		editor
 			.edit((e) => {
