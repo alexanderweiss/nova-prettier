@@ -9,7 +9,8 @@ class FormattingService {
 		this.didAddTextEditor = this.didAddTextEditor.bind(this)
 		this.toggleFormatOnSave = this.toggleFormatOnSave.bind(this)
 		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this)
-		this.format = this.format.bind(this)
+		this.editorWillSave = this.editorWillSave.bind(this)
+		this.didInvokeFormatCommand = this.didInvokeFormatCommand.bind(this)
 
 		this.saveListeners = new Map()
 		this.issueCollection = new IssueCollection()
@@ -132,10 +133,18 @@ class FormattingService {
 		if (!this.enabled) return
 
 		if (this.saveListeners.has(editor)) return
-		this.saveListeners.set(editor, editor.onWillSave(this.format))
+		this.saveListeners.set(editor, editor.onWillSave(this.editorWillSave))
 	}
 
-	async format(editor) {
+	async editorWillSave(editor) {
+		this.format(editor, true)
+	}
+
+	async didInvokeFormatCommand(editor) {
+		this.format(editor)
+	}
+
+	async format(editor, saving) {
 		const { document } = editor
 
 		const documentRange = new Range(0, document.length)
@@ -208,6 +217,9 @@ class FormattingService {
 				editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
 			})
 			.then(() => {
+				// Nothing to do if the doc isn't getting saved.
+				if (!saving) return
+
 				if (!document.isDirty) return
 				if (document.isClosed) return
 				if (document.isUntitled) return
@@ -360,7 +372,10 @@ exports.activate = async function () {
 			prettier,
 			parsers
 		)
-		nova.commands.register('prettier.format', formattingService.format)
+		nova.commands.register(
+			'prettier.format',
+			formattingService.didInvokeFormatCommand
+		)
 	} catch (err) {
 		console.error('Unable to set up prettier service', err, err.stack)
 
