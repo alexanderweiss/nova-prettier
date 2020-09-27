@@ -217,11 +217,13 @@ class FormattingService {
 		this.didAddTextEditor = this.didAddTextEditor.bind(this);
 		this.toggleFormatOnSave = this.toggleFormatOnSave.bind(this);
 		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this);
-		this.format = this.format.bind(this);
+		this.editorWillSave = this.editorWillSave.bind(this);
+		this.didInvokeFormatCommand = this.didInvokeFormatCommand.bind(this);
 
 		this.saveListeners = new Map();
 		this.issueCollection = new IssueCollection();
 		this.configs = new Map();
+		this.formattedText = new Map();
 
 		this.setupConfiguration();
 		nova.workspace.onDidAddTextEditor(this.didAddTextEditor);
@@ -339,14 +341,29 @@ class FormattingService {
 		if (!this.enabled) return
 
 		if (this.saveListeners.has(editor)) return
-		this.saveListeners.set(editor, editor.onWillSave(this.format));
+		this.saveListeners.set(editor, editor.onWillSave(this.editorWillSave));
 	}
 
-	async format(editor) {
+	async editorWillSave(editor) {
+		this.format(editor, true);
+	}
+
+	async didInvokeFormatCommand(editor) {
+		this.format(editor);
+	}
+
+	async format(editor, saving) {
 		const { document } = editor;
 
 		const documentRange = new Range(0, document.length);
 		const text = editor.getTextInRange(documentRange);
+
+		// Skip formatting if the current text matches a saved formatted version
+		const previouslyFormattedText = this.formattedText.get(editor);
+		if (previouslyFormattedText) {
+			this.formattedText.delete(editor);
+			if (previouslyFormattedText === text) return
+		}
 
 		const params = {
 			text,
@@ -367,6 +384,7 @@ class FormattingService {
 		let result;
 		let error;
 		try {
+			// TODO: Add a timeout
 			result = this.prettierService
 				? await this.prettierService.request('format', params)
 				: await this.formatLegacy(params);
@@ -399,11 +417,29 @@ class FormattingService {
 		}
 
 		const { formatted, cursorOffset } = result;
+		if (formatted === text) return
 
 		editor
 			.edit((e) => {
 				e.replace(documentRange, formatted);
 				editor.selectedRanges = [new Range(cursorOffset, cursorOffset)];
+			})
+			.then(() => {
+				// Nothing to do if the doc isn't getting saved.
+				if (!saving) return
+
+				if (!document.isDirty) return
+				if (document.isClosed) return
+				if (document.isUntitled) return
+
+				const documentRange = new Range(0, document.length);
+				const text = editor.getTextInRange(documentRange);
+				if (formatted !== text) return
+
+				// Our changes weren't included in the save because it took too
+				// long. Save it once more but skip formatting for that save.
+				this.formattedText.set(editor, formatted);
+				editor.save();
 			})
 			.catch((err) => console.error(err, err.stack));
 	}
@@ -411,7 +447,7 @@ class FormattingService {
 	async formatLegacy({ text, syntax, pathForConfig, options }) {
 		let config = {};
 		let info = {};
-		
+
 		// Don't handle PHP syntax. Required because Nova considers PHP a
 		// sub-syntax of HTML and enables the command.
 		if (syntax === 'php') return null
@@ -544,7 +580,10 @@ var activate = async function () {
 			prettier$1,
 			parsers
 		);
-		nova.commands.register('prettier.format', formattingService.format);
+		nova.commands.register(
+			'prettier.format',
+			formattingService.didInvokeFormatCommand
+		);
 	} catch (err) {
 		console.error('Unable to set up prettier service', err, err.stack);
 

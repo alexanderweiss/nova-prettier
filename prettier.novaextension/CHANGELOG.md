@@ -1,3 +1,13 @@
+## [1.5.1] - 2020-09-27
+
+### Changed
+
+- When formatting on save, automatically save the file again if Nova thought formatting took too long and saved the unformatted version
+
+### Fixed
+
+- Fixes unnecessary document updates when it's already properly formatted
+
 ## [1.5.0] - 2020-09-26
 
 ### Added
