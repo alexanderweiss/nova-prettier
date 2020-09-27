@@ -14,6 +14,7 @@ class FormattingService {
 		this.saveListeners = new Map()
 		this.issueCollection = new IssueCollection()
 		this.configs = new Map()
+		this.formattedText = new Map()
 
 		this.setupConfiguration()
 		nova.workspace.onDidAddTextEditor(this.didAddTextEditor)
@@ -140,6 +141,13 @@ class FormattingService {
 		const documentRange = new Range(0, document.length)
 		const text = editor.getTextInRange(documentRange)
 
+		// Skip formatting if the current text matches a saved formatted version
+		const previouslyFormattedText = this.formattedText.get(editor)
+		if (previouslyFormattedText) {
+			this.formattedText.delete(editor)
+			if (previouslyFormattedText === text) return
+		}
+
 		const params = {
 			text,
 			pathForConfig: document.path || nova.workspace.path,
@@ -159,6 +167,7 @@ class FormattingService {
 		let result
 		let error
 		try {
+			// TODO: Add a timeout
 			result = this.prettierService
 				? await this.prettierService.request('format', params)
 				: await this.formatLegacy(params)
@@ -198,13 +207,27 @@ class FormattingService {
 				e.replace(documentRange, formatted)
 				editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
 			})
+			.then(() => {
+				if (!document.isDirty) return
+				if (document.isClosed) return
+				if (document.isUntitled) return
+
+				const documentRange = new Range(0, document.length)
+				const text = editor.getTextInRange(documentRange)
+				if (formatted !== text) return
+
+				// Our changes weren't included in the save because it took too
+				// long. Save it once more but skip formatting for that save.
+				this.formattedText.set(editor, formatted)
+				editor.save()
+			})
 			.catch((err) => console.error(err, err.stack))
 	}
 
 	async formatLegacy({ text, syntax, pathForConfig, options }) {
 		let config = {}
 		let info = {}
-		
+
 		// Don't handle PHP syntax. Required because Nova considers PHP a
 		// sub-syntax of HTML and enables the command.
 		if (syntax === 'php') return null
