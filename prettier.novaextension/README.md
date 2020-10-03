@@ -3,17 +3,18 @@
 Code formatting using Prettier, right in Nova.
 
 - Formats on save (can be changed per project), or using `Editor > Format with Prettier` (**⌥⇧F**).
-- Supports all languages supported by Prettier: `json`, `html`, `javascript`, `jsx`, `flow`, `typescript`, `vue`, `angular`, `css`, `less`, `scss`, `graphql`, `markdown`, `yaml`.
+- Supports all languages supported by Prettier: `json`, `html`, `javascript`, `jsx`, `flow`, `typescript`, `vue`, `angular`, `css`, `less`, `scss`, `graphql`, `markdown`, `yaml`, and plugins.
 - Supports [standard Prettier configuration](https://prettier.io/docs/en/configuration.html), and [.prettierignore](https://prettier.io/docs/en/ignore.html) files.
-- Uses the Prettier installed in your project (or built-in Prettier if you don't have any).
+- Uses the Prettier and any plugins installed in your project (or built-in Prettier if you don't have any).
 
 ## Using plugins
 
-If you want to use Prettier plugins just enable the `Run Prettier in a separate process (experimental)` option in the extension's preferences in the Extension Library. Please [report any issues](https://github.com/alexanderweiss/nova-prettier/issues) you have with this option enabled.
+If you want to use Prettier plugins just install them, as well as Prettier, in your project.
 
 ## Ignoring files
 
-You can use Prettier's [built-in exclusion](https://prettier.io/docs/en/ignore.html#ignoring-files) feature by adding a `.prettierignore` file to the root of your project. _Note: adding it anywhere else won't work._
+You can disable format on save for specific syntaxes in the extension preferences.
+You can also use Prettier's [built-in exclusion](https://prettier.io/docs/en/ignore.html#ignoring-files) feature by adding a `.prettierignore` file to the root of your project. _Note: adding it anywhere else won't work._
 
 ## Using a different version of Prettier
 
