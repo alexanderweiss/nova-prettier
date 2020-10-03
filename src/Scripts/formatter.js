@@ -346,9 +346,11 @@ class SubprocessFormatter extends Formatter {
 			}
 		})
 
-		editPromise.then(() => {
-			editor.selectedRanges = [new Range(newSelectionStart, newSelectionEnd)]
-		})
+		editPromise
+			.then(() => {
+				editor.selectedRanges = [new Range(newSelectionStart, newSelectionEnd)]
+			})
+			.catch((err) => console.error(err))
 		return editPromise
 	}
 }
