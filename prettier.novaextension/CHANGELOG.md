@@ -2,56 +2,57 @@
 
 ### Changed
 
-- Show notification about any unhandled errors during formatting
+- Show notification about any unhandled errors during formatting.
 
 ### Fixed
 
-- Fixes syntax errors preventing formatting no longer getting reported
+- Fixes syntax errors preventing formatting no longer getting reported.
+- Fixes issues on older macOS releases.
 
 ## 1.5.1 - 2020-09-27
 
 ### Changed
 
-- When formatting on save, automatically save the file again if Nova thought formatting took too long and saved the unformatted version
+- When formatting on save, automatically save the file again if Nova thought formatting took too long and saved the unformatted version.
 
 ### Fixed
 
-- Fixes unnecessary document updates when it's already properly formatted
+- Fixes unnecessary document updates when it's already properly formatted.
 
 ## 1.5.0 - 2020-09-26
 
 ### Added
 
-- Support for Prettier plugins (requires enabling `Run Prettier in a separate process (experimental)`)
+- Support for Prettier plugins (requires enabling `Run Prettier in a separate process (experimental)`).
 
 ### Changed
 
-- Improved performance when formatting large files (requires enabling `Run Prettier in a separate process (experimental)`)
-- Stop formatting PHP, unless the PHP plugin is used
+- Improved performance when formatting large files (requires enabling `Run Prettier in a separate process (experimental)`).
+- Stop formatting PHP, unless the PHP plugin is used.
 
 ## 1.4.0 - 2020-09-25
 
 ### Added
 
-- Set a default keyboard shortcut for `Format with Prettier` command: ⌥⇧F
-- Added a global `Format on save` preference that can be overridden by project preferences
-- Support formatting of HTML in PHP files
+- Set a default keyboard shortcut for `Format with Prettier` command: ⌥⇧F.
+- Added a global `Format on save` preference that can be overridden by project preferences.
+- Support formatting of HTML in PHP files.
 
 ### Changed
 
-- Fall back to bundled Prettier when loading the project's Prettier installation fails
+- Fall back to bundled Prettier when loading the project's Prettier installation fails.
 
 ### Fixed
 
-- Fixes files opened after disabling formatting on save getting formatted on save
+- Fixes files opened after disabling formatting on save getting formatted on save.
 
 ## 1.3.0 - 2020-09-21
 
 ### Added
 
-- Support formatting of files in non-project windows
-- Support working on the Prettier repository
-- Automatically update the bundled installation of Prettier if the extension includes a new version
+- Support formatting of files in non-project windows.
+- Support working on the Prettier repository.
+- Automatically update the bundled installation of Prettier if the extension includes a new version.
 
 ### Changed
 
