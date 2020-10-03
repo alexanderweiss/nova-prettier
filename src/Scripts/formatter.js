@@ -80,8 +80,12 @@ class Formatter {
 		}
 
 		const { formatted } = result
-		if (formatted === text) return []
+		if (formatted === text) {
+			console.log(`No changes for ${document.path}`)
+			return []
+		}
 
+		console.log(`Applying formatted changes to ${document.path}`)
 		let editPromise = this.applyResult(editor, result, {
 			text,
 			selectionStart,
