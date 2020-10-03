@@ -1084,8 +1084,12 @@ class Formatter {
 		}
 
 		const { formatted } = result;
-		if (formatted === text) return []
+		if (formatted === text) {
+			console.log(`No changes for ${document.path}`);
+			return []
+		}
 
+		console.log(`Applying formatted changes to ${document.path}`);
 		let editPromise = this.applyResult(editor, result, {
 			text,
 			selectionStart,
@@ -1224,6 +1228,7 @@ class SubprocessFormatter extends Formatter {
 	}
 
 	stop() {
+		nova.notifications.cancel('prettier-not-running');
 		if (!this._isReadyPromise) return
 
 		console.log('Stopping Prettier service');
@@ -1257,15 +1262,15 @@ class SubprocessFormatter extends Formatter {
 		showActionableError$1(
 			'prettier-not-running',
 			'Prettier stopped running',
-			`Try restarting, or run in legacy mode instead (also available in settings). If you do, please check the Extension Console for log output and report an issue though Extension Library.`,
-			['Use legacy mode', 'Restart'],
+			`Try restarting, or run in compatibility mode instead (also available in settings). If you do, please check the Extension Console for log output and report an issue though Extension Library.`,
+			['Use compatibility mode', 'Restart Prettier'],
 			(r) => {
 				switch (r) {
+					case 0:
+						nova.config.set('prettier.use-compatibility-mode', true);
+						break
 					case 1:
 						this.start();
-						break
-					case 0:
-						nova.config.set('prettier.experimental.prettier-service', false);
 						break
 				}
 			}
@@ -1368,6 +1373,10 @@ class RuntimeFormatter extends Formatter {
 		this.parsers = parsers;
 
 		this.configs = new Map();
+	}
+
+	start() {
+		console.log('Starting runtime formatter');
 	}
 
 	async getConfigForPath(path) {
@@ -1490,17 +1499,14 @@ class PrettierExtension {
 			this.toggleFormatOnSave
 		);
 		nova.config.observe('prettier.format-on-save', this.toggleFormatOnSave);
-		nova.config.observe(
-			'prettier.experimental.prettier-service',
-			this.toggleFormatter
-		);
+		nova.config.observe('prettier.use-compatibility-mode', this.toggleFormatter);
 	}
 
-	toggleFormatter(useSubprocess) {
+	toggleFormatter(useCompatibilityMode) {
 		if (this.formatter) this.formatter.stop();
-		this.formatter = useSubprocess
-			? new SubprocessFormatter$1(this.modulePath)
-			: new RuntimeFormatter$1(this.modulePath, this.prettier, this.parsers);
+		this.formatter = useCompatibilityMode
+			? new RuntimeFormatter$1(this.modulePath, this.prettier, this.parsers)
+			: new SubprocessFormatter$1(this.modulePath);
 		this.formatter.start();
 	}
 

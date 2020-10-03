@@ -4,13 +4,16 @@
 
 - Added global setting to disable `Format on save` for specific syntaxes.
 - Included PHP plugin with bundled Prettier (requires enabling `Run Prettier in a separate process (experimental)`).
+- More events are logged to the extension console.
 
 ### Changed
 
-- Selected text now remains selected after formatting (doesn't support multiple selections / cursors, requires enabling `Run Prettier in a separate process (experimental)`).
-- Folded code will now remain folded unless formatting changes it (requires enabling `Run Prettier in a separate process (experimental)`).
-- Improved formatting speed (requires enabling `Run Prettier in a separate process (experimental)`).
-- Show syntax errors from PHP plugin inline
+- Plugin support is now enabled by default, but can be disabled when errors occur.
+- Selected text now remains selected after formatting (doesn't support multiple selections / cursors).
+- Folded code will now remain folded unless formatting changes it.
+- Improved formatting speed.
+- The `Format with Prettier` command is now available for all syntaxes, so it works with plugins.
+- Show syntax errors from PHP plugin inline.
 
 ## 1.5.2 - 2020-10-03
 
