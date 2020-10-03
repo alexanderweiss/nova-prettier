@@ -147,6 +147,10 @@ class JsonRpcService {
 		})
 	}
 
+	notify(method) {
+		this.write({ method })
+	}
+
 	write(data) {
 		const responseString = JSON.stringify(
 			{ jsonrpc: '2.0', ...data },

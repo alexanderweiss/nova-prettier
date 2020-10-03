@@ -9,6 +9,7 @@ class PrettierService {
 
 		this.jsonRpc = new JsonRpcService(process.stdin, process.stdout)
 		this.jsonRpc.onRequest('format', this.format)
+		this.jsonRpc.notify('didStart')
 	}
 
 	async format({ text, pathForConfig, ignorePath, options }) {

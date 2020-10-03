@@ -16,16 +16,16 @@ export default [
 		output: { file: 'prettier.novaextension/Scripts/config.js', format: 'cjs' },
 	},
 	{
-		input: 'src/Scripts/prettier-service.js',
+		input: 'src/Scripts/prettier-service/prettier-service.js',
 		output: {
-			file: 'prettier.novaextension/Scripts/prettier-service.js',
+			file: 'prettier.novaextension/Scripts/prettier-service/prettier-service.js',
 			format: 'cjs',
 		},
 	},
 	{
-		input: 'src/Scripts/json-rpc.js',
+		input: 'src/Scripts/prettier-service/json-rpc.js',
 		output: {
-			file: 'prettier.novaextension/Scripts/json-rpc.js',
+			file: 'prettier.novaextension/Scripts/prettier-service/json-rpc.js',
 			format: 'cjs',
 		},
 	},
