@@ -205,11 +205,11 @@ class FormattingService {
 			result = this.prettierService
 				? await this.prettierService.request('format', params)
 				: await this.formatLegacy(params)
-			if (result.error) error = result.error
 		} catch (err) {
 			error = err
 		}
 
+		if (result) error = result.error
 		if (error) {
 			const name = error.name || error.constructor.name
 			if (name === 'UndefinedParserError') throw error
