@@ -113,6 +113,12 @@
 							"default": false
 						},
 						{
+							"key": "prettier.format-on-save.ignored-syntaxes.php",
+							"title": "PHP",
+							"type": "boolean",
+							"default": false
+						},
+						{
 							"key": "prettier.format-on-save.ignored-syntaxes.scss",
 							"title": "SCSS",
 							"type": "boolean",

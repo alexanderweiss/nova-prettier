@@ -99,8 +99,17 @@ class Formatter {
 		const name = error.name || error.constructor.name
 		if (name === 'UndefinedParserError') throw error
 
-		// See if it's a proper syntax error.
-		const lineData = error.message.match(/\((\d+):(\d+)\)\n/m)
+		// See if it's a proper syntax error
+		let lineData = error.message.match(/\((\d+):(\d+)\)\n/m)
+		// See if it's a PHP syntax error
+		if (!lineData) {
+			lineData = error.message.match(/on line (\d+)\n/m)
+			if (lineData) {
+				const columnData = error.message.match(/\|(\s+)\^\n/m)
+				if (columnData) lineData[2] = columnData[1].length
+			}
+		}
+
 		if (!lineData) {
 			throw error
 		}
