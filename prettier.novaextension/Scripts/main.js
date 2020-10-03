@@ -324,10 +324,15 @@ class FormattingService {
 	}
 
 	toggleFormatOnSave() {
-		this.enabled =
-			this.getFormatOnSaveWorkspaceConfig() ??
-			nova.config.get('prettier.format-on-save') ??
-			true;
+		const workspaceConfig = this.getFormatOnSaveWorkspaceConfig();
+		const extensionConfig = nova.config.get('prettier.format-on-save');
+		if (workspaceConfig !== null) {
+			this.enabled = workspaceConfig;
+		} else if (extensionConfig !== null) {
+			this.enabled = extensionConfig;
+		} else {
+			this.enabled = true;
+		}
 
 		if (this.enabled) {
 			nova.workspace.textEditors.forEach(this.didAddTextEditor);
