@@ -154,7 +154,7 @@
 				{
 					"key": "prettier.experimental.prettier-service",
 					"title": "Run Prettier in a separate process (experimental)",
-					"description": "This improves formatting speed of large files and adds support for plugins",
+					"description": "This improves formatting speed of large files and adds support for plugins including PHP",
 					"type": "boolean",
 					"default": false
 				}
