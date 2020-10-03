@@ -371,6 +371,10 @@ class RuntimeFormatter extends Formatter {
 		this.configs = new Map()
 	}
 
+	start() {
+		console.log('Starting runtime formatter')
+	}
+
 	async getConfigForPath(path) {
 		// TODO: Invalidate cache at some point?
 		if (this.configs.has(path)) return this.configs.get(path)
