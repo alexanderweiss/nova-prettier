@@ -224,6 +224,7 @@ class SubprocessFormatter extends Formatter {
 	}
 
 	stop() {
+		nova.notifications.cancel('prettier-not-running')
 		if (!this._isReadyPromise) return
 
 		console.log('Stopping Prettier service')
