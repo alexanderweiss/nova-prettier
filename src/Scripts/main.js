@@ -28,17 +28,14 @@ class PrettierExtension {
 			this.toggleFormatOnSave
 		)
 		nova.config.observe('prettier.format-on-save', this.toggleFormatOnSave)
-		nova.config.observe(
-			'prettier.experimental.prettier-service',
-			this.toggleFormatter
-		)
+		nova.config.observe('prettier.use-compatibility-mode', this.toggleFormatter)
 	}
 
-	toggleFormatter(useSubprocess) {
+	toggleFormatter(useCompatibilityMode) {
 		if (this.formatter) this.formatter.stop()
-		this.formatter = useSubprocess
-			? new SubprocessFormatter(this.modulePath)
-			: new RuntimeFormatter(this.modulePath, this.prettier, this.parsers)
+		this.formatter = useCompatibilityMode
+			? new RuntimeFormatter(this.modulePath, this.prettier, this.parsers)
+			: new SubprocessFormatter(this.modulePath)
 		this.formatter.start()
 	}
 

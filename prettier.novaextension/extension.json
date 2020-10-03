@@ -152,9 +152,10 @@
 			"type": "section",
 			"children": [
 				{
-					"key": "prettier.experimental.prettier-service",
-					"title": "Run Prettier in a separate process (experimental)",
-					"description": "This improves formatting speed of large files and adds support for plugins including PHP",
+					"key": "prettier.use-compatibility-mode",
+					"title": "Use compatibility mode",
+					"description": "This disables plugin support and reduces performance. Please check out the logs in the extension console and report a bug if you need to use this.",
+					"link": "https://github.com/alexanderweiss/nova-prettier/issues",
 					"type": "boolean",
 					"default": false
 				}

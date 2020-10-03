@@ -258,15 +258,15 @@ class SubprocessFormatter extends Formatter {
 		showActionableError(
 			'prettier-not-running',
 			'Prettier stopped running',
-			`Try restarting, or run in legacy mode instead (also available in settings). If you do, please check the Extension Console for log output and report an issue though Extension Library.`,
-			['Use legacy mode', 'Restart'],
+			`Try restarting, or run in compatibility mode instead (also available in settings). If you do, please check the Extension Console for log output and report an issue though Extension Library.`,
+			['Use compatibility mode', 'Restart Prettier'],
 			(r) => {
 				switch (r) {
+					case 0:
+						nova.config.set('prettier.use-compatibility-mode', true)
+						break
 					case 1:
 						this.start()
-						break
-					case 0:
-						nova.config.set('prettier.experimental.prettier-service', false)
 						break
 				}
 			}
