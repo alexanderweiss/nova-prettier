@@ -398,8 +398,6 @@ class FormattingService {
 			error = err;
 		}
 
-		if (!result) return
-
 		if (error) {
 			const name = error.name || error.constructor.name;
 			if (name === 'UndefinedParserError') return
@@ -420,6 +418,8 @@ class FormattingService {
 			this.issueCollection.set(document.uri, [issue]);
 			return
 		}
+
+		if (!result) return
 
 		const { formatted, cursorOffset } = result;
 		if (formatted === text) return
