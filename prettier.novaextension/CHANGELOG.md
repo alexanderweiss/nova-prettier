@@ -1,4 +1,14 @@
-## [1.5.1] - 2020-09-27
+## 1.5.2 - 2020-10-03
+
+### Changed
+
+- Show notification about any unhandled errors during formatting
+
+### Fixed
+
+- Fixes syntax errors preventing formatting no longer getting reported
+
+## 1.5.1 - 2020-09-27
 
 ### Changed
 
@@ -8,7 +18,7 @@
 
 - Fixes unnecessary document updates when it's already properly formatted
 
-## [1.5.0] - 2020-09-26
+## 1.5.0 - 2020-09-26
 
 ### Added
 
@@ -19,7 +29,7 @@
 - Improved performance when formatting large files (requires enabling `Run Prettier in a separate process (experimental)`)
 - Stop formatting PHP, unless the PHP plugin is used
 
-## [1.4.0] - 2020-09-25
+## 1.4.0 - 2020-09-25
 
 ### Added
 
@@ -35,7 +45,7 @@
 
 - Fixes files opened after disabling formatting on save getting formatted on save
 
-## [1.3.0] - 2020-09-21
+## 1.3.0 - 2020-09-21
 
 ### Added
 
@@ -47,7 +57,7 @@
 
 - **(Breaking)** Updated bundle Prettier to 2.1.2.
 
-## [1.2.1] - 2020-09-17
+## 1.2.1 - 2020-09-17
 
 ### Added
 
@@ -60,20 +70,20 @@
 - Log non-syntax errors from Prettier to the extension console properly.
 - Include stack trace with errors logged in the extension console.
 
-## [1.2.0] - 2020-08-17
+## 1.2.0 - 2020-08-17
 
 ### Added
 
 - Added a warning with help when Prettier (and NPM) can't be found.
 
-## [1.1.0] - 2020-06-15
+## 1.1.0 - 2020-06-15
 
 ### Added
 
 - Use Prettier installed in the project's node_modules. If none is available the extension falls back to the bundled Prettier.
 - Automatically find and load parsers provided by Prettier.
 
-## [1.0.0] - 2020-06-12
+## 1.0.0 - 2020-06-12
 
 ### Added
 
@@ -84,13 +94,13 @@
 
 - **(Breaking)** Updated to Prettier 2.0.5.
 
-## [0.2.0] - 2020-02-29
+## 0.2.0 - 2020-02-29
 
 ### Added
 
 - Don't include prettier in extension, but install when activating.
 
-## [0.1.0] - 2020-01-31
+## 0.1.0 - 2020-01-31
 
 ### Added
 

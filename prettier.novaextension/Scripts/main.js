@@ -350,15 +350,35 @@ class FormattingService {
 	}
 
 	async editorWillSave(editor) {
-		this.format(editor, true);
+		try {
+			await this.format(editor, true);
+		} catch (err) {
+			console.error(err, err.stack);
+			showError(
+				'prettier-format-error',
+				`Error while formatting on save`,
+				`"${err.message}" occurred while formatting ${editor.document.path}. See the extension console for more info.`
+			);
+		}
 	}
 
 	async didInvokeFormatCommand(editor) {
-		this.format(editor);
+		try {
+			await this.format(editor, true);
+		} catch (err) {
+			console.error(err, err.stack);
+			showError(
+				'prettier-format-error',
+				`Error while formatting`,
+				`"${err.message}" occurred while formatting ${editor.document.path}. See the extension console for more info.`
+			);
+		}
 	}
 
 	async format(editor, saving) {
 		const { document } = editor;
+
+		console.log(`Formatting ${document.path}`);
 
 		const documentRange = new Range(0, document.length);
 		const text = editor.getTextInRange(documentRange);
@@ -393,20 +413,19 @@ class FormattingService {
 			result = this.prettierService
 				? await this.prettierService.request('format', params)
 				: await this.formatLegacy(params);
-			if (result.error) error = result.error;
 		} catch (err) {
 			error = err;
 		}
 
+		if (result) error = result.error;
 		if (error) {
 			const name = error.name || error.constructor.name;
-			if (name === 'UndefinedParserError') return
+			if (name === 'UndefinedParserError') throw error
 
 			// See if it's a proper syntax error.
 			const lineData = error.message.match(/\((\d+):(\d+)\)\n/m);
 			if (!lineData) {
-				console.error(error, error.stack);
-				return
+				throw error
 			}
 
 			const issue = new Issue();
@@ -430,6 +449,7 @@ class FormattingService {
 				editor.selectedRanges = [new Range(cursorOffset, cursorOffset)];
 			})
 			.then(() => {
+				// TODO: We can probably remove this again.
 				// Nothing to do if the doc isn't getting saved.
 				if (!saving) return
 
