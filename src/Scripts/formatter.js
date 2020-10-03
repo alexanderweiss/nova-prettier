@@ -32,6 +32,18 @@ class Formatter {
 	async formatEditor(editor, shouldSave) {
 		const { document } = editor
 
+		if (
+			shouldSave &&
+			nova.config.get(
+				`prettier.format-on-save.ignored-syntaxes.${document.syntax}`
+			) === true
+		) {
+			console.log(
+				`Not formatting (${document.syntax}) syntax ignored) ${document.path}`
+			)
+			return []
+		}
+
 		console.log(`Formatting ${document.path}`)
 
 		const documentRange = new Range(0, document.length)

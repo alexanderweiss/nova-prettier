@@ -41,18 +41,118 @@
 	},
 	"config": [
 		{
-			"key": "prettier.format-on-save",
+			"key": "prettier.format-on-save.section",
 			"title": "Format on save",
-			"description": "Whether to format documents when saved. (Can be overriden in project settings)",
-			"type": "boolean",
-			"default": true
+			"type": "section",
+			"children": [
+				{
+					"key": "prettier.format-on-save",
+					"title": "Format documents when saved",
+					"description": "Can be overriden in project settings",
+					"type": "boolean",
+					"default": true
+				},
+				{
+					"key": "prettier.format-on-save.ignored-syntaxes.section",
+					"title": "Ignored syntaxes",
+					"description": "Documents set to an ignored syntax will never be formatted when saved",
+					"type": "section",
+					"children": [
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.css",
+							"title": "CSS",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.flow",
+							"title": "Flow",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.graphql",
+							"title": "graphql",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.html",
+							"title": "HTML",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.javascript",
+							"title": "JavaScript",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.json",
+							"title": "JSON",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.jsx",
+							"title": "JSX",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.less",
+							"title": "LESS",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.markdown",
+							"title": "Markdown",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.scss",
+							"title": "SCSS",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.typescript",
+							"title": "TypeScript",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.vue",
+							"title": "Vue",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.yaml",
+							"title": "YAML",
+							"type": "boolean",
+							"default": false
+						}
+					]
+				}
+			]
 		},
 		{
-			"key": "prettier.experimental.prettier-service",
-			"title": "Run Prettier in a separate process (experimental)",
-			"description": "This improves formatting speed of large files and adds support for plugins",
-			"type": "boolean",
-			"default": false
+			"key": "prettier.other.section",
+			"title": "Other",
+			"type": "section",
+			"children": [
+				{
+					"key": "prettier.experimental.prettier-service",
+					"title": "Run Prettier in a separate process (experimental)",
+					"description": "This improves formatting speed of large files and adds support for plugins",
+					"type": "boolean",
+					"default": false
+				}
+			]
 		}
 	],
 	"config-workspace": [
