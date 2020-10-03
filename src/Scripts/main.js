@@ -19,6 +19,7 @@ class PrettierExtension {
 
 		this.setupConfiguration()
 		nova.workspace.onDidAddTextEditor(this.didAddTextEditor)
+		nova.commands.register('prettier.format', this.didInvokeFormatCommand)
 	}
 
 	setupConfiguration() {
