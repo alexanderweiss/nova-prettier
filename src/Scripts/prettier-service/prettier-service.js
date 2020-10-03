@@ -23,15 +23,17 @@ class PrettierService {
 
 			const config = await this.prettier.resolveConfig(pathForConfig)
 
-			return this.prettier.formatWithCursor(text, {
+			const formatted = this.prettier.format(text, {
 				...config,
 				...options,
 			})
+
+			return { formatted }
 		} catch (error) {
 			// Return error as object; JSON-RPC errors don't work well.
 			return {
 				error: {
-					name: error.constructor.name,
+					name: error.name,
 					message: error.message,
 					stack: error.stack,
 				},
