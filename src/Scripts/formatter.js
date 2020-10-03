@@ -1,4 +1,14 @@
+const diff = require('fast-diff')
 const { showError, showActionableError } = require('./helpers.js')
+
+const POSSIBLE_CURSORS = String.fromCharCode(
+	0xfffd,
+	0xffff,
+	0x1f094,
+	0x1f08d,
+	0xe004,
+	0x1f08d
+).split('')
 
 class Formatter {
 	constructor() {
@@ -18,7 +28,6 @@ class Formatter {
 	}
 
 	// runPrettier() {}
-	// applyResult() {}
 
 	async formatEditor(editor, shouldSave) {
 		const { document } = editor
@@ -37,26 +46,35 @@ class Formatter {
 
 		const pathForConfig = document.path || nova.workspace.path
 		const syntax = document.syntax
+		const selectionStart = editor.selectedRange.start
+		const selectionEnd = editor.selectedRange.end
 		const options = {
 			...(document.path
 				? { filepath: document.path }
 				: { parser: this.parserForSyntax(syntax) }),
-			cursorOffset: editor.selectedRange.end,
+			cursorOffset: selectionEnd,
 		}
 
 		let result
 		try {
 			result = await this.runPrettier(text, pathForConfig, syntax, options)
 		} catch (err) {
-			return this.handlePrettierError(editor, err)
+			return this.issuesFromPrettierError(err)
 		}
 
-		if (!result) return []
+		if (!result) {
+			console.log(`No result (ignored or no parser) for ${document.path}`)
+			return []
+		}
 
 		const { formatted } = result
 		if (formatted === text) return []
 
-		let editPromise = this.applyResult(editor, result)
+		let editPromise = this.applyResult(editor, result, {
+			text,
+			selectionStart,
+			selectionEnd,
+		})
 		if (shouldSave) {
 			editPromise = editPromise.then(() => {
 				this.ensureSaved(editor, formatted)
@@ -65,7 +83,7 @@ class Formatter {
 		editPromise.catch((err) => console.error(err, err.stack))
 	}
 
-	handlePrettierError(editor, error) {
+	issuesFromPrettierError(error) {
 		const name = error.name || error.constructor.name
 		if (name === 'UndefinedParserError') throw error
 
@@ -82,6 +100,21 @@ class Formatter {
 		issue.column = lineData[2]
 
 		return [issue]
+	}
+
+	async applyResult(editor, { formatted, cursorOffset }) {
+		const { document } = editor
+		const documentRange = new Range(0, document.length)
+
+		const editPromise = editor.edit((e) => {
+			e.replace(documentRange, formatted)
+		})
+
+		editPromise.then(() => {
+			editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
+		})
+
+		return editPromise
 	}
 
 	ensureSaved(editor, formatted) {
@@ -215,6 +248,8 @@ class SubprocessFormatter extends Formatter {
 	}
 
 	async runPrettier(text, pathForConfig, syntax, options) {
+		delete options.cursorOffset
+
 		const result = await this.prettierService.request('format', {
 			text,
 			pathForConfig,
@@ -233,14 +268,67 @@ class SubprocessFormatter extends Formatter {
 		throw error
 	}
 
-	async applyResult(editor, { formatted, cursorOffset }) {
-		const { document } = editor
-		const documentRange = new Range(0, document.length)
+	async applyResult(editor, result, options) {
+		const { formatted } = result
+		const { text, selectionStart, selectionEnd } = options
 
-		return editor.edit((e) => {
-			e.replace(documentRange, formatted)
-			editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
+		// Find a cursor that does not occur in this document
+		const cursor = POSSIBLE_CURSORS.find(
+			(cursor) => !text.includes(cursor) && !formatted.includes(cursor)
+		)
+		// Fall back to not knowing the cursor position.
+		if (!cursor) return super.applyResult(editor, result, options)
+
+		// Insert the cursors
+		const textWithCursor =
+			text.slice(0, selectionStart) +
+			cursor +
+			text.slice(selectionStart, selectionEnd) +
+			cursor +
+			text.slice(selectionEnd)
+
+		// Diff
+		const edits = diff(textWithCursor, formatted)
+
+		let newSelectionStart
+		let newSelectionEnd
+		const editPromise = editor.edit((e) => {
+			let offset = 0
+			let toRemove = 0
+
+			for (const [edit, str] of edits) {
+				if (edit === diff.DELETE) {
+					toRemove += str.length
+
+					// Check if the cursors are in here
+					let cursorIndex = -1
+					while (true) {
+						cursorIndex = str.indexOf(cursor, cursorIndex + 1)
+						if (cursorIndex === -1) break
+						newSelectionStart
+							? (newSelectionEnd = offset)
+							: (newSelectionStart = offset)
+						toRemove -= cursor.length
+					}
+
+					continue
+				}
+
+				if (edit === diff.EQUAL && toRemove) {
+					e.replace(new Range(offset, offset + toRemove), '')
+				} else if (edit === diff.INSERT) {
+					e.replace(new Range(offset, offset + toRemove), str)
+				}
+
+				toRemove = 0
+				offset += str.length
+			}
 		})
+
+		editPromise.then(() => {
+			editor.selectedRanges = [new Range(newSelectionStart, newSelectionEnd)]
+		})
+		return editPromise
 	}
 }
 
@@ -337,16 +425,6 @@ class RuntimeFormatter extends Formatter {
 			...config,
 			...options,
 			plugins: this.parsers,
-		})
-	}
-
-	async applyResult(editor, { formatted, cursorOffset }) {
-		const { document } = editor
-		const documentRange = new Range(0, document.length)
-
-		return editor.edit((e) => {
-			e.replace(documentRange, formatted)
-			editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
 		})
 	}
 }

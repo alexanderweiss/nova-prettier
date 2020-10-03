@@ -1,3 +1,11 @@
+## 1.6.0 - unreleased
+
+### Changed
+
+- The selection is now maintained after after formatting (doesn't support multiple selections / cursors) (requires enabling `Run Prettier in a separate process (experimental)`).
+- Folded code will now remain folded unless it's actually changed (requires enabling `Run Prettier in a separate process (experimental)`).
+- Improved formatting speed (requires enabling `Run Prettier in a separate process (experimental)`).
+
 ## 1.5.2 - 2020-10-03
 
 ### Changed
