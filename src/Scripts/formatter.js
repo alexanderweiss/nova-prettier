@@ -75,6 +75,7 @@ class Formatter {
 		}
 
 		if (!result) {
+			// TODO: Show warning when formatting using command.
 			console.log(`No result (ignored or no parser) for ${document.path}`)
 			return []
 		}
@@ -298,6 +299,8 @@ class SubprocessFormatter extends Formatter {
 		const { formatted } = result
 		const { text, selectionStart, selectionEnd } = options
 
+		// TODO: Multi-cursor support.
+
 		// Find a cursor that does not occur in this document
 		const cursor = POSSIBLE_CURSORS.find(
 			(cursor) => !text.includes(cursor) && !formatted.includes(cursor)
@@ -452,6 +455,7 @@ class RuntimeFormatter extends Formatter {
 		}
 
 		if (options.filepath && info.ignored === true) return null
+		if (!options.parser && !info.inferredParser) return null
 
 		return this.prettier.formatWithCursor(text, {
 			...config,

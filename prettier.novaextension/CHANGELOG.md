@@ -14,6 +14,7 @@
 - Improved formatting speed.
 - The `Format with Prettier` command is now available for all syntaxes, so it works with plugins.
 - Show syntax errors from PHP plugin inline.
+- Don't show error when trying to format a file that has no parser available.
 
 ## 1.5.2 - 2020-10-03
 

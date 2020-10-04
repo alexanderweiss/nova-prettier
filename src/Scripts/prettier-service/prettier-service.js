@@ -23,6 +23,8 @@ class PrettierService {
 
 			const config = await this.prettier.resolveConfig(pathForConfig)
 
+			if (!options.parser && !info.inferredParser) return null
+
 			const formatted = this.prettier.format(text, {
 				...config,
 				...options,
