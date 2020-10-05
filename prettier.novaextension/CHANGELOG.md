@@ -1,9 +1,9 @@
-## 1.6.0 - 2020-10-05
+## 1.6.1 - 2020-10-05
 
 ### Added
 
 - Added global setting to disable `Format on save` for specific syntaxes.
-- Included PHP plugin with bundled Prettier (requires enabling `Run Prettier in a separate process (experimental)`).
+- Included PHP plugin with bundled Prettier.
 - More events are logged to the extension console.
 
 ### Changed
@@ -18,7 +18,7 @@
 
 ### Fixed
 
-- Fixes an error trying to log errors occurring while looking up configuration
+- Fixes an error trying to log errors occurring while looking up configuration.
 
 ## 1.5.2 - 2020-10-03
 

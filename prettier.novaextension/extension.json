@@ -3,7 +3,7 @@
 	"name": "Prettier",
 	"organization": "Alexander Weiss",
 	"description": "Integrates Prettier for code formatting.",
-	"version": "1.6.0",
+	"version": "1.6.1",
 	"categories": ["formatters", "issues"],
 	"repository": "https://github.com/alexanderweiss/nova-prettier",
 	"bugs": "https://github.com/alexanderweiss/nova-prettier/issues",
