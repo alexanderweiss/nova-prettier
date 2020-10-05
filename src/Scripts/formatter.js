@@ -447,7 +447,7 @@ class RuntimeFormatter extends Formatter {
 				;({ config, info } = await this.getConfigForPath(pathForConfig))
 			} catch (err) {
 				console.warn(
-					`Unable to get config for ${document.path}: ${err}`,
+					`Unable to get config for ${pathForConfig}: ${err}`,
 					err.stack
 				)
 				this.showConfigResolutionError(pathForConfig)
