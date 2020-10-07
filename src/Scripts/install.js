@@ -9,7 +9,7 @@ async function checkPrettierVersion() {
 	})
 
 	const process = new Process('/usr/bin/env', {
-		args: ['npm', 'll', 'prettier', '--parseable'],
+		args: ['npm', 'll', 'prettier', '--parseable', '--depth', '0'],
 		cwd: nova.extension.path,
 	})
 
