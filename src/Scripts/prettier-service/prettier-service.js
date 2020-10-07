@@ -21,7 +21,9 @@ class PrettierService {
 			})
 			if (info.ignored) return null
 
-			const config = await this.prettier.resolveConfig(pathForConfig)
+			const config = await this.prettier.resolveConfig(pathForConfig, {
+				editorconfig: true,
+			})
 
 			if (!options.parser && !info.inferredParser) return null
 
