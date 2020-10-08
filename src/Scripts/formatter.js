@@ -325,6 +325,13 @@ class SubprocessFormatter extends Formatter {
 		// Diff
 		const edits = diff(textWithCursor, formatted)
 
+		if (text !== editor.getTextInRange(new Range(0, editor.document.length))) {
+			console.log(
+				`Document ${editor.document.path} was changed while formatting`
+			)
+			return
+		}
+
 		let newSelectionStart
 		let newSelectionEnd
 		const editPromise = editor.edit((e) => {
