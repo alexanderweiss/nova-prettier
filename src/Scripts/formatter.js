@@ -69,7 +69,13 @@ class Formatter {
 
 		let result
 		try {
-			result = await this.runPrettier(text, pathForConfig, syntax, options)
+			result = await this.runPrettier(
+				text,
+				pathForConfig,
+				syntax,
+				shouldSave,
+				options
+			)
 		} catch (err) {
 			return this.issuesFromPrettierError(err)
 		}
@@ -274,13 +280,13 @@ class SubprocessFormatter extends Formatter {
 		)
 	}
 
-	async runPrettier(text, pathForConfig, syntax, options) {
+	async runPrettier(text, pathForConfig, syntax, shouldSave, options) {
 		delete options.cursorOffset
 
 		const result = await this.prettierService.request('format', {
 			text,
 			pathForConfig,
-			ignorePath: this.ignorePath(pathForConfig),
+			ignorePath: shouldSave && this.ignorePath(pathForConfig),
 			syntax,
 			options,
 		})
@@ -434,7 +440,7 @@ class RuntimeFormatter extends Formatter {
 		)
 	}
 
-	async runPrettier(text, pathForConfig, syntax, options) {
+	async runPrettier(text, pathForConfig, syntax, _shouldSave, options) {
 		let config = {}
 		let info = {}
 
@@ -444,6 +450,7 @@ class RuntimeFormatter extends Formatter {
 
 		if (pathForConfig) {
 			try {
+				// TODO: Always format when shouldSave === false
 				;({ config, info } = await this.getConfigForPath(pathForConfig))
 			} catch (err) {
 				console.warn(
