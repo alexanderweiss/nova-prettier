@@ -16,14 +16,22 @@ class PrettierService {
 
 	async format({ text, pathForConfig, ignorePath, options }) {
 		try {
-			// Don't format if this file is ignored
-			const info = await this.prettier.getFileInfo(pathForConfig, {
-				ignorePath,
-				withNodeModules: false,
-			});
-			if (info.ignored) return null
+			let info = {};
+			if (options.filepath) {
+				info = await this.prettier.getFileInfo(options.filepath, {
+					ignorePath,
+					withNodeModules: false,
+				});
 
-			const config = await this.prettier.resolveConfig(pathForConfig);
+				// Don't format if this file is ignored
+				if (info.ignored) return null
+			}
+
+			const inferredConfig = await this.prettier.resolveConfig(pathForConfig, {
+				editorconfig: true,
+			});
+
+			const config = { ...inferredConfig, ...options };
 
 			if (!options.parser && !info.inferredParser) return null
 

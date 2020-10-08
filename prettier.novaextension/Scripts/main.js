@@ -2,9 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+var prettier = require('./prettier.js');
 
-var prettier = _interopDefault(require('./prettier.js'));
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var prettier__default = /*#__PURE__*/_interopDefaultLegacy(prettier);
 
 /** Class for managing external NPM module executables in Nova extensions */
 var NPMExecutable_1 = class NPMExecutable
@@ -1073,7 +1075,13 @@ class Formatter {
 
 		let result;
 		try {
-			result = await this.runPrettier(text, pathForConfig, syntax, options);
+			result = await this.runPrettier(
+				text,
+				pathForConfig,
+				syntax,
+				shouldSave,
+				options
+			);
 		} catch (err) {
 			return this.issuesFromPrettierError(err)
 		}
@@ -1278,13 +1286,13 @@ class SubprocessFormatter extends Formatter {
 		);
 	}
 
-	async runPrettier(text, pathForConfig, syntax, options) {
+	async runPrettier(text, pathForConfig, syntax, shouldSave, options) {
 		delete options.cursorOffset;
 
 		const result = await this.prettierService.request('format', {
 			text,
 			pathForConfig,
-			ignorePath: this.ignorePath(pathForConfig),
+			ignorePath: shouldSave && this.ignorePath(pathForConfig),
 			syntax,
 			options,
 		});
@@ -1322,6 +1330,13 @@ class SubprocessFormatter extends Formatter {
 
 		// Diff
 		const edits = diff_1(textWithCursor, formatted);
+
+		if (text !== editor.getTextInRange(new Range(0, editor.document.length))) {
+			console.log(
+				`Document ${editor.document.path} was changed while formatting`
+			);
+			return
+		}
 
 		let newSelectionStart;
 		let newSelectionEnd;
@@ -1438,7 +1453,7 @@ class RuntimeFormatter extends Formatter {
 		);
 	}
 
-	async runPrettier(text, pathForConfig, syntax, options) {
+	async runPrettier(text, pathForConfig, syntax, _shouldSave, options) {
 		let config = {};
 		let info = {};
 
@@ -1448,6 +1463,7 @@ class RuntimeFormatter extends Formatter {
 
 		if (pathForConfig) {
 			try {
+				// TODO: Always format when shouldSave === false
 				;({ config, info } = await this.getConfigForPath(pathForConfig));
 			} catch (err) {
 				console.warn(
@@ -1598,9 +1614,9 @@ class PrettierExtension {
 var activate = async function () {
 	try {
 		await install();
-		const { modulePath, prettier: prettier$1, parsers } = await prettier();
+		const { modulePath, prettier, parsers } = await prettier__default['default']();
 
-		const extension = new PrettierExtension(modulePath, prettier$1, parsers);
+		const extension = new PrettierExtension(modulePath, prettier, parsers);
 	} catch (err) {
 		console.error('Unable to set up prettier service', err, err.stack);
 

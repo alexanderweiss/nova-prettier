@@ -6,7 +6,9 @@ const path = require('path')
 ;(async () => {
 	const [, , modulePath, ignorePath, filePath] = process.argv;
 	const prettier = require(path.join(modulePath));
-	const config = await prettier.resolveConfig(filePath);
+	const config = await prettier.resolveConfig(filePath, {
+		editorconfig: true,
+	});
 	const info = await prettier.getFileInfo(filePath, {
 		ignorePath,
 		withNodeModules: false,

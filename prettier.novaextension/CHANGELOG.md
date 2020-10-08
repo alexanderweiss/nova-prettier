@@ -1,3 +1,17 @@
+## 1.7.0 - 2020-10-08
+
+### Changed
+
+- Only use Prettier available in the project if it's a direct project dependency.
+- Take `.editorconfig` into account when determining formatting configuration.
+- The `Format with Prettier` command now ignores the `.prettierignore` file.
+
+### Fixed
+
+- Fixes parser overrides in `.prettierrc` file getting ignored.
+- Fixes formatting an unsaved file outside of a workspace causing an error.
+- Fixes document text getting mixed up if changes are made during formatting.
+
 ## 1.6.1 - 2020-10-05
 
 ### Added
