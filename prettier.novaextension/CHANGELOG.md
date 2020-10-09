@@ -1,3 +1,9 @@
+## 1.7.1- 2020-10-09
+
+### Fixed
+
+- Actually fixes parser overrides in `.prettierrc` file getting ignored.
+
 ## 1.7.0 - 2020-10-08
 
 ### Changed
