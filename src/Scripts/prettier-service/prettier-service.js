@@ -29,9 +29,9 @@ class PrettierService {
 				editorconfig: true,
 			})
 
-			const config = { ...inferredConfig, ...options }
+			const config = { ...options, ...inferredConfig }
 
-			if (!options.parser && !info.inferredParser) return null
+			if (!config.parser && !info.inferredParser) return null
 
 			const formatted = this.prettier.format(text, {
 				...config,
