@@ -283,6 +283,14 @@ class SubprocessFormatter extends Formatter {
 	async runPrettier(text, pathForConfig, syntax, shouldSave, options) {
 		delete options.cursorOffset
 
+		if (nova.config.get('prettier.format-on-save.ignore-without-config')) {
+			const hasConfig = await this.prettierService.request('hasConfig', {
+				pathForConfig,
+			})
+
+			if (!hasConfig) return null
+		}
+
 		const result = await this.prettierService.request('format', {
 			text,
 			pathForConfig,

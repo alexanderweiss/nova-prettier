@@ -35,6 +35,12 @@
 					"default": true
 				},
 				{
+					"key": "prettier.format-on-save.ignore-without-config",
+					"title": "Ignore files no Prettier config file can be found for",
+					"type": "boolean",
+					"default": false
+				},
+				{
 					"key": "prettier.format-on-save.ignored-syntaxes.section",
 					"title": "Ignored syntaxes",
 					"description": "Documents set to an ignored syntax will never be formatted when saved",
