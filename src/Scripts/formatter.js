@@ -10,6 +10,26 @@ const POSSIBLE_CURSORS = String.fromCharCode(
 	0x1f08d
 ).split('')
 
+const PRETTIER_OPTIONS = [
+	'arrowParens',
+	'bracketSpacing',
+	'endOfLine',
+	'htmlWhitespaceSensitivity',
+	'insertPragma',
+	'jsxBracketSameLine',
+	'jsxSingleQuote',
+	'printWidth',
+	'proseWrap',
+	'quoteProps',
+	'requirePragma',
+	'semi',
+	'singleQuote',
+	'tabWidth',
+	'trailingComma',
+	'useTabs',
+	'vueIndentScriptAndStyle',
+]
+
 class Formatter {
 	constructor() {
 		this.formattedText = new Map()
@@ -201,6 +221,15 @@ class SubprocessFormatter extends Formatter {
 		return this._isReadyPromise
 	}
 
+	get defaultConfig() {
+		return Object.fromEntries(
+			PRETTIER_OPTIONS.map((option) => [
+				option,
+				nova.config.get(`prettier.default-config.${option}`),
+			])
+		)
+	}
+
 	async start() {
 		if (this._isReadyPromise) return
 
@@ -283,13 +312,19 @@ class SubprocessFormatter extends Formatter {
 	async runPrettier(text, pathForConfig, syntax, shouldSave, options) {
 		delete options.cursorOffset
 
-		if (nova.config.get('prettier.format-on-save.ignore-without-config')) {
-			const hasConfig = await this.prettierService.request('hasConfig', {
-				pathForConfig,
-			})
+		const hasConfig = await this.prettierService.request('hasConfig', {
+			pathForConfig,
+		})
 
-			if (!hasConfig) return null
+		if (!hasConfig) {
+			if (nova.config.get('prettier.format-on-save.ignore-without-config')) {
+				return null
+			}
+
+			options = { ...options, ...this.defaultConfig }
 		}
+
+		console.log(JSON.stringify(options))
 
 		const result = await this.prettierService.request('format', {
 			text,
@@ -334,9 +369,7 @@ class SubprocessFormatter extends Formatter {
 		const edits = diff(textWithCursor, formatted)
 
 		if (text !== editor.getTextInRange(new Range(0, editor.document.length))) {
-			log.info(
-				`Document ${editor.document.path} was changed while formatting`
-			)
+			log.info(`Document ${editor.document.path} was changed while formatting`)
 			return
 		}
 
