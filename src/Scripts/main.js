@@ -1,5 +1,5 @@
 const ensureInstalled = require('./install.js')
-const { showError } = require('./helpers.js')
+const { showError, showActionableError } = require('./helpers.js')
 const { SubprocessFormatter, RuntimeFormatter } = require('./formatter.js')
 
 class PrettierExtension {
@@ -126,6 +126,21 @@ exports.activate = async function () {
 		const { modulePath, prettier, parsers } = await require('./prettier.js')()
 
 		const extension = new PrettierExtension(modulePath, prettier, parsers)
+
+		if (nova.config.get('prettier.use-compatibility-mode')) {
+			showActionableError(
+				'prettier-compatibility-mode-warning',
+				`Compatibility mode will soon disappear`,
+				`Please create an issue on Github with information about what version of macOS and Node you're using so we can make sure Prettier keeps working for you.`,
+				['Create issue'],
+				(action) => {
+					if (!action) return
+					nova.openURL(
+						'https://github.com/alexanderweiss/nova-prettier/issues/new'
+					)
+				}
+			)
+		}
 	} catch (err) {
 		console.error('Unable to set up prettier service', err, err.stack)
 
