@@ -23,7 +23,7 @@ async function findPrettier() {
 		if (!result) return resolve(null)
 
 		const [path, name] = result.split(':')
-		if (!name.startsWith('prettier@')) return resolve(null)
+		if (!name || !name.startsWith('prettier@')) return resolve(null)
 		if (path === nova.workspace.path) {
 			console.log(
 				`You seem to be working on Prettier! The extension doesn't work without Prettier built, so using the built-in Prettier instead.`
