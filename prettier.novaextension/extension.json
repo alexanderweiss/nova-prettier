@@ -146,6 +146,12 @@
 					"link": "https://github.com/alexanderweiss/nova-prettier/issues",
 					"type": "boolean",
 					"default": false
+				},
+				{
+					"key": "prettier.debug.logging",
+					"title": "Log debug information to Extension Console",
+					"type": "boolean",
+					"default": true
 				}
 			]
 		}

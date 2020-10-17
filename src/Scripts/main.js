@@ -1,5 +1,5 @@
 const ensureInstalled = require('./install.js')
-const { showError, showActionableError } = require('./helpers.js')
+const { showError, showActionableError, log } = require('./helpers.js')
 const { SubprocessFormatter, RuntimeFormatter } = require('./formatter.js')
 
 class PrettierExtension {

@@ -1,5 +1,5 @@
 const diff = require('fast-diff')
-const { showError, showActionableError } = require('./helpers.js')
+const { showError, showActionableError, log } = require('./helpers.js')
 
 const POSSIBLE_CURSORS = String.fromCharCode(
 	0xfffd,
@@ -38,13 +38,13 @@ class Formatter {
 				`prettier.format-on-save.ignored-syntaxes.${document.syntax}`
 			) === true
 		) {
-			console.log(
+			log.info(
 				`Not formatting (${document.syntax}) syntax ignored) ${document.path}`
 			)
 			return []
 		}
 
-		console.log(`Formatting ${document.path}`)
+		log.info(`Formatting ${document.path}`)
 
 		const documentRange = new Range(0, document.length)
 		const text = editor.getTextInRange(documentRange)
@@ -82,17 +82,17 @@ class Formatter {
 
 		if (!result) {
 			// TODO: Show warning when formatting using command.
-			console.log(`No result (ignored or no parser) for ${document.path}`)
+			log.info(`No result (ignored or no parser) for ${document.path}`)
 			return []
 		}
 
 		const { formatted } = result
 		if (formatted === text) {
-			console.log(`No changes for ${document.path}`)
+			log.info(`No changes for ${document.path}`)
 			return []
 		}
 
-		console.log(`Applying formatted changes to ${document.path}`)
+		log.info(`Applying formatted changes to ${document.path}`)
 		let editPromise = this.applyResult(editor, result, {
 			text,
 			selectionStart,
@@ -204,7 +204,7 @@ class SubprocessFormatter extends Formatter {
 	async start() {
 		if (this._isReadyPromise) return
 
-		console.log('Starting Prettier service')
+		log.info('Starting Prettier service')
 
 		this._isReadyPromise = new Promise((resolve) => {
 			this._resolveIsReadyPromise = resolve
@@ -234,7 +234,7 @@ class SubprocessFormatter extends Formatter {
 		nova.notifications.cancel('prettier-not-running')
 		if (!this._isReadyPromise) return
 
-		console.log('Stopping Prettier service')
+		log.info('Stopping Prettier service')
 
 		this.prettierService.terminate()
 		if (this._resolveIsReadyPromise) this._resolveIsReadyPromise(false)
@@ -334,7 +334,7 @@ class SubprocessFormatter extends Formatter {
 		const edits = diff(textWithCursor, formatted)
 
 		if (text !== editor.getTextInRange(new Range(0, editor.document.length))) {
-			console.log(
+			log.info(
 				`Document ${editor.document.path} was changed while formatting`
 			)
 			return
@@ -396,7 +396,7 @@ class RuntimeFormatter extends Formatter {
 	}
 
 	start() {
-		console.log('Starting runtime formatter')
+		log.info('Starting runtime formatter')
 	}
 
 	async getConfigForPath(path) {

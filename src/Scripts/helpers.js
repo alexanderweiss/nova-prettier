@@ -21,7 +21,20 @@ function showActionableError(id, title, body, actions, callback) {
 		.catch((err) => console.error(err, err.stack))
 }
 
+const log = Object.fromEntries(
+	['log', 'info'].map((fn) => [
+		fn,
+		(...args) => {
+			if (!nova.inDevMode() && !nova.config.get('prettier.debug.logging')) {
+				return
+			}
+			console[fn](...args)
+		},
+	])
+)
+
 module.exports = {
 	showError,
 	showActionableError,
+	log,
 }
