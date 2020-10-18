@@ -240,7 +240,7 @@ class SubprocessFormatter extends Formatter {
 		return Object.fromEntries(
 			PRETTIER_OPTIONS.map((option) => [
 				option,
-				nova.config.get(`prettier.default-config.${option}`),
+				getConfigWithWorkspaceOverride(`prettier.default-config.${option}`),
 			])
 		)
 	}
