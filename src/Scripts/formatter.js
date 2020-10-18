@@ -87,6 +87,15 @@ class Formatter {
 			cursorOffset: selectionEnd,
 		}
 
+		// Don't format-on-save remote documents if they're ignored.
+		if (
+			shouldSave &&
+			document.isRemote &&
+			nova.config.get('prettier.format-on-save.ignore-remote')
+		) {
+			return []
+		}
+
 		let result
 		try {
 			result = await this.runPrettier(
@@ -94,6 +103,7 @@ class Formatter {
 				pathForConfig,
 				syntax,
 				shouldSave,
+				document.isRemote,
 				options
 			)
 		} catch (err) {
@@ -309,22 +319,34 @@ class SubprocessFormatter extends Formatter {
 		)
 	}
 
-	async runPrettier(text, pathForConfig, syntax, shouldSave, options) {
+	async runPrettier(
+		text,
+		pathForConfig,
+		syntax,
+		shouldSave,
+		isRemote,
+		options
+	) {
 		delete options.cursorOffset
 
-		const hasConfig = await this.prettierService.request('hasConfig', {
-			pathForConfig,
-		})
+		let hasConfig = false
 
-		if (!hasConfig) {
-			if (nova.config.get('prettier.format-on-save.ignore-without-config')) {
+		if (!isRemote) {
+			hasConfig = await this.prettierService.request('hasConfig', {
+				pathForConfig,
+			})
+
+			if (
+				!hasConfig &&
+				nova.config.get('prettier.format-on-save.ignore-without-config')
+			) {
 				return null
 			}
-
-			options = { ...options, ...this.defaultConfig }
 		}
 
-		console.log(JSON.stringify(options))
+		if (!hasConfig) {
+			options = { ...options, ...this.defaultConfig }
+		}
 
 		const result = await this.prettierService.request('format', {
 			text,
@@ -488,7 +510,14 @@ class RuntimeFormatter extends Formatter {
 		)
 	}
 
-	async runPrettier(text, pathForConfig, syntax, _shouldSave, options) {
+	async runPrettier(
+		text,
+		pathForConfig,
+		syntax,
+		_shouldSave,
+		_isRemote,
+		options
+	) {
 		let config = {}
 		let info = {}
 

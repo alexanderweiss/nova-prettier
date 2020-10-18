@@ -25,7 +25,7 @@
 		{
 			"key": "prettier.default-config.section",
 			"title": "Default Prettier configuration",
-			"description": "May be overridden in project settings and will be ignored if a Prettier configuration file is found.",
+			"description": "Used for remote files or if no Prettier configuration file exists. Can be overridden in project settings.",
 			"type": "section",
 			"children": [
 				{
@@ -182,13 +182,19 @@
 				{
 					"key": "prettier.format-on-save",
 					"title": "Format documents when saved",
-					"description": "Can be overriden in project settings",
+					"description": "Can be overridden in project settings.",
 					"type": "boolean",
 					"default": true
 				},
 				{
 					"key": "prettier.format-on-save.ignore-without-config",
-					"title": "Ignore files no Prettier config file can be found for",
+					"title": "Ignore documents without Prettier configuration file. Can be overridden in project settings.",
+					"type": "boolean",
+					"default": false
+				},
+				{
+					"key": "prettier.format-on-save.ignore-remote",
+					"title": "Ignore remote documents. Can be overridden in project settings.",
 					"type": "boolean",
 					"default": false
 				},
