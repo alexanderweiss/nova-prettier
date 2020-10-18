@@ -1,5 +1,10 @@
 const diff = require('fast-diff')
-const { showError, showActionableError, log } = require('./helpers.js')
+const {
+	showError,
+	showActionableError,
+	log,
+	getConfigWithWorkspaceOverride,
+} = require('./helpers.js')
 
 const POSSIBLE_CURSORS = String.fromCharCode(
 	0xfffd,
@@ -91,7 +96,7 @@ class Formatter {
 		if (
 			shouldSave &&
 			document.isRemote &&
-			nova.config.get('prettier.format-on-save.ignore-remote')
+			getConfigWithWorkspaceOverride('prettier.format-on-save.ignore-remote')
 		) {
 			return []
 		}
@@ -338,7 +343,9 @@ class SubprocessFormatter extends Formatter {
 
 			if (
 				!hasConfig &&
-				nova.config.get('prettier.format-on-save.ignore-without-config')
+				getConfigWithWorkspaceOverride(
+					'prettier.format-on-save.ignore-without-config'
+				)
 			) {
 				return null
 			}

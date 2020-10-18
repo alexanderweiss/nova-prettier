@@ -188,13 +188,15 @@
 				},
 				{
 					"key": "prettier.format-on-save.ignore-without-config",
-					"title": "Ignore documents without Prettier configuration file. Can be overridden in project settings.",
+					"title": "Ignore documents without Prettier configuration file",
+					"description": "Can be overridden in project settings.",
 					"type": "boolean",
 					"default": false
 				},
 				{
 					"key": "prettier.format-on-save.ignore-remote",
-					"title": "Ignore remote documents. Can be overridden in project settings.",
+					"title": "Ignore remote documents",
+					"description": "Can be overridden in project settings.",
 					"type": "boolean",
 					"default": false
 				},
@@ -316,12 +318,32 @@
 	],
 	"config-workspace": [
 		{
-			"key": "prettier.format-on-save",
+			"key": "prettier.format-on-save.section",
 			"title": "Format on save",
-			"description": "Whether to format documents when saved.",
-			"type": "enum",
-			"values": ["Global Default", "Enable", "Disable"],
-			"default": "Global Default"
+			"type": "section",
+			"children": [
+				{
+					"key": "prettier.format-on-save",
+					"title": "Format documents when saved",
+					"type": "enum",
+					"values": ["Global Default", "Enable", "Disable"],
+					"default": "Global Default"
+				},
+				{
+					"key": "prettier.format-on-save.ignore-without-config",
+					"title": "Ignore documents without Prettier configuration file",
+					"type": "enum",
+					"values": ["Global Default", "Enable", "Disable"],
+					"default": "Global Default"
+				},
+				{
+					"key": "prettier.format-on-save.ignore-remote",
+					"title": "Ignore remote documents",
+					"type": "enum",
+					"values": ["Global Default", "Enable", "Disable"],
+					"default": "Global Default"
+				}
+			]
 		}
 	]
 }

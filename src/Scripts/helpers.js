@@ -21,6 +21,27 @@ function showActionableError(id, title, body, actions, callback) {
 		.catch((err) => console.error(err, err.stack))
 }
 
+function getConfigWithWorkspaceOverride(name) {
+	const workspaceConfig = getWorkspaceConfig(name)
+	const extensionConfig = nova.config.get(name)
+
+	return workspaceConfig === null ? extensionConfig : workspaceConfig
+}
+
+function getWorkspaceConfig(name) {
+	const value = nova.workspace.config.get(name)
+	switch (value) {
+		case 'Enable':
+			return true
+		case 'Disable':
+			return false
+		case 'Global Default':
+			return null
+		default:
+			return value
+	}
+}
+
 const log = Object.fromEntries(
 	['log', 'info'].map((fn) => [
 		fn,
@@ -37,4 +58,5 @@ module.exports = {
 	showError,
 	showActionableError,
 	log,
+	getConfigWithWorkspaceOverride,
 }

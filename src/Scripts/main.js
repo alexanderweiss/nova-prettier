@@ -1,5 +1,10 @@
 const ensureInstalled = require('./install.js')
-const { showError, showActionableError, log } = require('./helpers.js')
+const {
+	showError,
+	showActionableError,
+	log,
+	getConfigWithWorkspaceOverride,
+} = require('./helpers.js')
 const { SubprocessFormatter, RuntimeFormatter } = require('./formatter.js')
 
 class PrettierExtension {
@@ -39,45 +44,8 @@ class PrettierExtension {
 		this.formatter.start()
 	}
 
-	getFormatOnSaveWorkspaceConfig() {
-		switch (nova.workspace.config.get('prettier.format-on-save')) {
-			case 'Enable':
-				return true
-			case 'Disable':
-				return false
-			// Upgrade old format
-			case true:
-				nova.workspace.config.set(
-					'prettier.format-on-save',
-					nova.config.get('prettier.format-on-save') === true
-						? 'Global Default'
-						: 'Enable'
-				)
-				return true
-			case false:
-				nova.workspace.config.set(
-					'prettier.format-on-save',
-					nova.config.get('prettier.format-on-save') === false
-						? 'Global Default'
-						: 'Disable'
-				)
-				return false
-			// No preference -> "Global default"
-			default:
-				return null
-		}
-	}
-
 	toggleFormatOnSave() {
-		const workspaceConfig = this.getFormatOnSaveWorkspaceConfig()
-		const extensionConfig = nova.config.get('prettier.format-on-save')
-		if (workspaceConfig !== null) {
-			this.enabled = workspaceConfig
-		} else if (extensionConfig !== null) {
-			this.enabled = extensionConfig
-		} else {
-			this.enabled = true
-		}
+		this.enabled = getConfigWithWorkspaceOverride('prettier.format-on-save')
 
 		if (this.enabled) {
 			nova.workspace.textEditors.forEach(this.didAddTextEditor)
