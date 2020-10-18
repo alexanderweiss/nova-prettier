@@ -2,6 +2,8 @@
 
 let loaded;
 
+// TODO: Use helpers.log
+
 class ProcessError extends Error {
 	constructor(status, message) {
 		super(message);
@@ -25,9 +27,9 @@ async function findPrettier() {
 		if (!result) return resolve(null)
 
 		const [path, name] = result.split(':');
-		if (!name.startsWith('prettier@')) return resolve(null)
+		if (!name || !name.startsWith('prettier@')) return resolve(null)
 		if (path === nova.workspace.path) {
-			console.log(
+			console.info(
 				`You seem to be working on Prettier! The extension doesn't work without Prettier built, so using the built-in Prettier instead.`
 			);
 			return resolve(null)
@@ -87,7 +89,7 @@ module.exports = async function () {
 
 	if (workspaceModulePath) {
 		try {
-			console.log(`Loading project prettier at ${workspaceModulePath}`);
+			console.info(`Loading project prettier at ${workspaceModulePath}`);
 			loaded = load(workspaceModulePath);
 		} catch (err) {
 			console.warn(`Couldn't load project prettier: ${err}`, err.stack);
@@ -100,7 +102,7 @@ module.exports = async function () {
 			'node_modules',
 			'prettier'
 		);
-		console.log(`Loading bundled prettier at ${extensionModulePath}`);
+		console.info(`Loading bundled prettier at ${extensionModulePath}`);
 		loaded = load(extensionModulePath);
 	}
 

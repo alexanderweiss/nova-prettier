@@ -14,5 +14,5 @@ const path = require('path')
 		withNodeModules: false,
 	});
 
-	console.log(JSON.stringify({ config, info }, null, null));
+	log.info(JSON.stringify({ config, info }, null, null));
 })().catch(console.error);

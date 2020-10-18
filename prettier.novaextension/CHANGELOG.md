@@ -1,3 +1,20 @@
+## 1.8.0 - 2020-10-18
+
+### Added
+
+- Added preferences to set default Prettier configuration globally and per-project.
+- Added preference (global and per-project) to ignore files for which no Prettier configuration file can be found when formatting on save.
+- Added preference (global and per-project) to ignore remote files when formatting on save.
+- Added preference to disable debug logging (errors are always logged).
+
+### Changed
+
+- Added an extra warning about future compatibility mode removal
+
+### Fixed
+
+- Fixes extension failing to parse NPM output and failing to start when no project Prettier is installed.
+
 ## 1.7.1- 2020-10-09
 
 ### Fixed

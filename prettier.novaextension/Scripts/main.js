@@ -156,7 +156,71 @@ var npmExecutable = {
 	NPMExecutable: NPMExecutable_1
 };
 
+function showError(id, title, body) {
+	let request = new NotificationRequest(id);
+
+	request.title = nova.localize(title);
+	request.body = nova.localize(body);
+	request.actions = [nova.localize('OK')];
+
+	nova.notifications.add(request).catch((err) => console.error(err, err.stack));
+}
+
+function showActionableError(id, title, body, actions, callback) {
+	let request = new NotificationRequest(id);
+
+	request.title = nova.localize(title);
+	request.body = nova.localize(body);
+	request.actions = actions.map((action) => nova.localize(action));
+
+	nova.notifications
+		.add(request)
+		.then((response) => callback(response.actionIdx))
+		.catch((err) => console.error(err, err.stack));
+}
+
+function getConfigWithWorkspaceOverride(name) {
+	const workspaceConfig = getWorkspaceConfig(name);
+	const extensionConfig = nova.config.get(name);
+
+	return workspaceConfig === null ? extensionConfig : workspaceConfig
+}
+
+function getWorkspaceConfig(name) {
+	const value = nova.workspace.config.get(name);
+	switch (value) {
+		case 'Enable':
+			return true
+		case 'Disable':
+			return false
+		case 'Global Default':
+			return null
+		default:
+			return value
+	}
+}
+
+const log = Object.fromEntries(
+	['log', 'info'].map((fn) => [
+		fn,
+		(...args) => {
+			if (!nova.inDevMode() && !nova.config.get('prettier.debug.logging')) {
+				return
+			}
+			console[fn](...args);
+		},
+	])
+);
+
+var helpers = {
+	showError,
+	showActionableError,
+	log,
+	getConfigWithWorkspaceOverride,
+};
+
 const { NPMExecutable } = npmExecutable;
+const { log: log$1 } = helpers;
 
 // TODO: Duplicate code in ./prettier.js (except onStdout handler)
 async function checkPrettierVersion() {
@@ -199,43 +263,15 @@ var install = async () => {
 	try {
 		const prettier = new NPMExecutable('prettier');
 		if (!prettier.isInstalled) {
-			console.log('Extension prettier not installed, installing');
+			log$1.info('Extension prettier not installed, installing');
 			await prettier.install();
 		} else if (!(await checkPrettierVersion())) {
-			console.log('Extension prettier out of date, updating/installing');
+			log$1.info('Extension prettier out of date, updating/installing');
 			await prettier.install();
 		}
 	} catch (err) {
 		console.error('Unable to find or install prettier', err, err.stack);
 	}
-};
-
-function showError(id, title, body) {
-	let request = new NotificationRequest(id);
-
-	request.title = nova.localize(title);
-	request.body = nova.localize(body);
-	request.actions = [nova.localize('OK')];
-
-	nova.notifications.add(request).catch((err) => console.error(err, err.stack));
-}
-
-function showActionableError(id, title, body, actions, callback) {
-	let request = new NotificationRequest(id);
-
-	request.title = nova.localize(title);
-	request.body = nova.localize(body);
-	request.actions = actions.map((action) => nova.localize(action));
-
-	nova.notifications
-		.add(request)
-		.then((response) => callback(response.actionIdx))
-		.catch((err) => console.error(err, err.stack));
-}
-
-var helpers = {
-	showError,
-	showActionableError,
 };
 
 /**
@@ -1005,7 +1041,12 @@ diff.EQUAL = DIFF_EQUAL;
 
 var diff_1 = diff;
 
-const { showError: showError$1, showActionableError: showActionableError$1 } = helpers;
+const {
+	showError: showError$1,
+	showActionableError: showActionableError$1,
+	log: log$2,
+	getConfigWithWorkspaceOverride: getConfigWithWorkspaceOverride$1,
+} = helpers;
 
 const POSSIBLE_CURSORS = String.fromCharCode(
 	0xfffd,
@@ -1015,6 +1056,26 @@ const POSSIBLE_CURSORS = String.fromCharCode(
 	0xe004,
 	0x1f08d
 ).split('');
+
+const PRETTIER_OPTIONS = [
+	'arrowParens',
+	'bracketSpacing',
+	'endOfLine',
+	'htmlWhitespaceSensitivity',
+	'insertPragma',
+	'jsxBracketSameLine',
+	'jsxSingleQuote',
+	'printWidth',
+	'proseWrap',
+	'quoteProps',
+	'requirePragma',
+	'semi',
+	'singleQuote',
+	'tabWidth',
+	'trailingComma',
+	'useTabs',
+	'vueIndentScriptAndStyle',
+];
 
 class Formatter {
 	constructor() {
@@ -1044,13 +1105,13 @@ class Formatter {
 				`prettier.format-on-save.ignored-syntaxes.${document.syntax}`
 			) === true
 		) {
-			console.log(
+			log$2.info(
 				`Not formatting (${document.syntax}) syntax ignored) ${document.path}`
 			);
 			return []
 		}
 
-		console.log(`Formatting ${document.path}`);
+		log$2.info(`Formatting ${document.path}`);
 
 		const documentRange = new Range(0, document.length);
 		const text = editor.getTextInRange(documentRange);
@@ -1073,6 +1134,15 @@ class Formatter {
 			cursorOffset: selectionEnd,
 		};
 
+		// Don't format-on-save remote documents if they're ignored.
+		if (
+			shouldSave &&
+			document.isRemote &&
+			getConfigWithWorkspaceOverride$1('prettier.format-on-save.ignore-remote')
+		) {
+			return []
+		}
+
 		let result;
 		try {
 			result = await this.runPrettier(
@@ -1080,6 +1150,7 @@ class Formatter {
 				pathForConfig,
 				syntax,
 				shouldSave,
+				document.isRemote,
 				options
 			);
 		} catch (err) {
@@ -1088,17 +1159,17 @@ class Formatter {
 
 		if (!result) {
 			// TODO: Show warning when formatting using command.
-			console.log(`No result (ignored or no parser) for ${document.path}`);
+			log$2.info(`No result (ignored or no parser) for ${document.path}`);
 			return []
 		}
 
 		const { formatted } = result;
 		if (formatted === text) {
-			console.log(`No changes for ${document.path}`);
+			log$2.info(`No changes for ${document.path}`);
 			return []
 		}
 
-		console.log(`Applying formatted changes to ${document.path}`);
+		log$2.info(`Applying formatted changes to ${document.path}`);
 		let editPromise = this.applyResult(editor, result, {
 			text,
 			selectionStart,
@@ -1207,10 +1278,19 @@ class SubprocessFormatter extends Formatter {
 		return this._isReadyPromise
 	}
 
+	get defaultConfig() {
+		return Object.fromEntries(
+			PRETTIER_OPTIONS.map((option) => [
+				option,
+				getConfigWithWorkspaceOverride$1(`prettier.default-config.${option}`),
+			])
+		)
+	}
+
 	async start() {
 		if (this._isReadyPromise) return
 
-		console.log('Starting Prettier service');
+		log$2.info('Starting Prettier service');
 
 		this._isReadyPromise = new Promise((resolve) => {
 			this._resolveIsReadyPromise = resolve;
@@ -1240,7 +1320,7 @@ class SubprocessFormatter extends Formatter {
 		nova.notifications.cancel('prettier-not-running');
 		if (!this._isReadyPromise) return
 
-		console.log('Stopping Prettier service');
+		log$2.info('Stopping Prettier service');
 
 		this.prettierService.terminate();
 		if (this._resolveIsReadyPromise) this._resolveIsReadyPromise(false);
@@ -1286,8 +1366,36 @@ class SubprocessFormatter extends Formatter {
 		);
 	}
 
-	async runPrettier(text, pathForConfig, syntax, shouldSave, options) {
+	async runPrettier(
+		text,
+		pathForConfig,
+		syntax,
+		shouldSave,
+		isRemote,
+		options
+	) {
 		delete options.cursorOffset;
+
+		let hasConfig = false;
+
+		if (!isRemote) {
+			hasConfig = await this.prettierService.request('hasConfig', {
+				pathForConfig,
+			});
+
+			if (
+				!hasConfig &&
+				getConfigWithWorkspaceOverride$1(
+					'prettier.format-on-save.ignore-without-config'
+				)
+			) {
+				return null
+			}
+		}
+
+		if (!hasConfig) {
+			options = { ...options, ...this.defaultConfig };
+		}
 
 		const result = await this.prettierService.request('format', {
 			text,
@@ -1332,9 +1440,7 @@ class SubprocessFormatter extends Formatter {
 		const edits = diff_1(textWithCursor, formatted);
 
 		if (text !== editor.getTextInRange(new Range(0, editor.document.length))) {
-			console.log(
-				`Document ${editor.document.path} was changed while formatting`
-			);
+			log$2.info(`Document ${editor.document.path} was changed while formatting`);
 			return
 		}
 
@@ -1394,7 +1500,7 @@ class RuntimeFormatter extends Formatter {
 	}
 
 	start() {
-		console.log('Starting runtime formatter');
+		log$2.info('Starting runtime formatter');
 	}
 
 	async getConfigForPath(path) {
@@ -1453,7 +1559,14 @@ class RuntimeFormatter extends Formatter {
 		);
 	}
 
-	async runPrettier(text, pathForConfig, syntax, _shouldSave, options) {
+	async runPrettier(
+		text,
+		pathForConfig,
+		syntax,
+		_shouldSave,
+		_isRemote,
+		options
+	) {
 		let config = {};
 		let info = {};
 
@@ -1490,7 +1603,12 @@ var formatter = {
 	RuntimeFormatter,
 };
 
-const { showError: showError$2 } = helpers;
+const {
+	showError: showError$2,
+	showActionableError: showActionableError$2,
+	log: log$3,
+	getConfigWithWorkspaceOverride: getConfigWithWorkspaceOverride$2,
+} = helpers;
 const { SubprocessFormatter: SubprocessFormatter$1, RuntimeFormatter: RuntimeFormatter$1 } = formatter;
 
 class PrettierExtension {
@@ -1530,45 +1648,8 @@ class PrettierExtension {
 		this.formatter.start();
 	}
 
-	getFormatOnSaveWorkspaceConfig() {
-		switch (nova.workspace.config.get('prettier.format-on-save')) {
-			case 'Enable':
-				return true
-			case 'Disable':
-				return false
-			// Upgrade old format
-			case true:
-				nova.workspace.config.set(
-					'prettier.format-on-save',
-					nova.config.get('prettier.format-on-save') === true
-						? 'Global Default'
-						: 'Enable'
-				);
-				return true
-			case false:
-				nova.workspace.config.set(
-					'prettier.format-on-save',
-					nova.config.get('prettier.format-on-save') === false
-						? 'Global Default'
-						: 'Disable'
-				);
-				return false
-			// No preference -> "Global default"
-			default:
-				return null
-		}
-	}
-
 	toggleFormatOnSave() {
-		const workspaceConfig = this.getFormatOnSaveWorkspaceConfig();
-		const extensionConfig = nova.config.get('prettier.format-on-save');
-		if (workspaceConfig !== null) {
-			this.enabled = workspaceConfig;
-		} else if (extensionConfig !== null) {
-			this.enabled = extensionConfig;
-		} else {
-			this.enabled = true;
-		}
+		this.enabled = getConfigWithWorkspaceOverride$2('prettier.format-on-save');
 
 		if (this.enabled) {
 			nova.workspace.textEditors.forEach(this.didAddTextEditor);
@@ -1617,6 +1698,21 @@ var activate = async function () {
 		const { modulePath, prettier, parsers } = await prettier__default['default']();
 
 		const extension = new PrettierExtension(modulePath, prettier, parsers);
+
+		if (nova.config.get('prettier.use-compatibility-mode')) {
+			showActionableError$2(
+				'prettier-compatibility-mode-warning',
+				`Compatibility mode will soon disappear`,
+				`Please create an issue on Github with information about what version of macOS and Node you're using so we can make sure Prettier keeps working for you.`,
+				['Create issue'],
+				(action) => {
+					if (!action) return
+					nova.openURL(
+						'https://github.com/alexanderweiss/nova-prettier/issues/new'
+					);
+				}
+			);
+		}
 	} catch (err) {
 		console.error('Unable to set up prettier service', err, err.stack);
 
