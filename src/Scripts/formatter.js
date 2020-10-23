@@ -142,26 +142,31 @@ class Formatter {
 	}
 
 	issuesFromPrettierError(error) {
+		// If the error doesn't have a message just ignore it.
+		if (typeof error.message !== 'string') return []
+
 		const name = error.name || error.constructor.name
 		if (name === 'UndefinedParserError') throw error
 
-		// See if it's a proper syntax error
+		// See if it's a simple error
 		let lineData = error.message.match(/\((\d+):(\d+)\)\n/m)
-		// See if it's a PHP syntax error
+		// See if it's a visual error
 		if (!lineData) {
-			lineData = error.message.match(/on line (\d+)\n/m)
+			lineData = error.message.match(/^>\s*?(\d+)\s\|\s/m)
 			if (lineData) {
-				const columnData = error.message.match(/\|(\s+)\^\n/m)
+				const columnData = error.message.match(/^\s+\|(\s+)\^($|\n)/im)
 				if (columnData) lineData[2] = columnData[1].length
 			}
 		}
 
-		if (!lineData) {
+		if (!lineData || !lineData[2]) {
 			throw error
 		}
 
 		const issue = new Issue()
-		issue.message = error.message
+		issue.message = error.stack
+			? error.message
+			: error.message.split(/\n\s*?at\s+/i)[0] // When error is only a message it probably has the stack trace appended. Remove it.
 		issue.severity = IssueSeverity.Error
 		issue.line = lineData[1]
 		issue.column = lineData[2]
