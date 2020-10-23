@@ -69,6 +69,10 @@ class PrettierService {
 
 	buildErrorResult(err) {
 		// Return error as object; JSON-RPC errors don't work well.
+
+		// Some plugins don't return error objects but strings.
+		if (typeof err === 'string') return { error: { message: err } }
+
 		return {
 			error: {
 				name: err.name,

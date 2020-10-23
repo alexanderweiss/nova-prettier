@@ -1,3 +1,9 @@
+## 1.8.1 - 2020-10-23
+
+### Added
+
+- Support syntax errors thrown by `prettier-plugin-twig-melody`
+
 ## 1.8.0 - 2020-10-18
 
 ### Added
