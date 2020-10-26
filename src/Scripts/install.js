@@ -18,7 +18,7 @@ async function checkPrettierVersion() {
 		if (!result) return resolve(null)
 
 		const [_, name, status] = result.split(':')
-		if (!name.startsWith('prettier@')) return resolve(false)
+		if (!name || !name.startsWith('prettier@')) return resolve(false)
 		if (status === 'INVALID') return resolve(false)
 		resolve(true)
 	})
