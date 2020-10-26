@@ -413,6 +413,9 @@ class SubprocessFormatter extends Formatter {
 			let offset = 0
 			let toRemove = 0
 
+			// Add an extra empty edit so any trailing delete is actually run.
+			edits.push([diff.EQUAL, ''])
+
 			for (const [edit, str] of edits) {
 				if (edit === diff.DELETE) {
 					toRemove += str.length
