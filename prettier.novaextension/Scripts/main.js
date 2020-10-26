@@ -239,7 +239,7 @@ async function checkPrettierVersion() {
 		if (!result) return resolve(null)
 
 		const [_, name, status] = result.split(':');
-		if (!name.startsWith('prettier@')) return resolve(false)
+		if (!name || !name.startsWith('prettier@')) return resolve(false)
 		if (status === 'INVALID') return resolve(false)
 		resolve(true);
 	});
@@ -1196,12 +1196,12 @@ class Formatter {
 		if (!lineData) {
 			lineData = error.message.match(/^>\s*?(\d+)\s\|\s/m);
 			if (lineData) {
-				const columnData = error.message.match(/^\s+\|(\s+)\^($|\n)/im);
-				if (columnData) lineData[2] = columnData[1].length;
+				const columnData = error.message.match(/^\s+\|(\s+)\^+($|\n)/im);
+				lineData[2] = columnData ? columnData[1].length + 1 : 0;
 			}
 		}
 
-		if (!lineData || !lineData[2]) {
+		if (!lineData) {
 			throw error
 		}
 
@@ -1454,6 +1454,9 @@ class SubprocessFormatter extends Formatter {
 		const editPromise = editor.edit((e) => {
 			let offset = 0;
 			let toRemove = 0;
+
+			// Add an extra empty edit so any trailing delete is actually run.
+			edits.push([diff_1.EQUAL, '']);
 
 			for (const [edit, str] of edits) {
 				if (edit === diff_1.DELETE) {

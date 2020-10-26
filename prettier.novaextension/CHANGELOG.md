@@ -1,3 +1,13 @@
+## 1.8.2 - 2020-10-26
+
+### Fixed
+
+- Fixes last line of code getting duplicated in some cases
+- Fixes position of column indicator offset by -1
+- Fixes a possible error when trying to check Prettier version
+- Fixes (PHP) syntax errors without a column indicator causing an error
+- Fixes (Twig) syntax errors with a double column indicator causing an error
+
 ## 1.8.1 - 2020-10-23
 
 ### Added
