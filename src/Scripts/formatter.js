@@ -155,11 +155,11 @@ class Formatter {
 			lineData = error.message.match(/^>\s*?(\d+)\s\|\s/m)
 			if (lineData) {
 				const columnData = error.message.match(/^\s+\|(\s+)\^+($|\n)/im)
-				if (columnData) lineData[2] = columnData[1].length + 1
+				lineData[2] = columnData ? columnData[1].length + 1 : 0
 			}
 		}
 
-		if (!lineData || !lineData[2]) {
+		if (!lineData) {
 			throw error
 		}
 
