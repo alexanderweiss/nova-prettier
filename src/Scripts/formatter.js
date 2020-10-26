@@ -154,8 +154,8 @@ class Formatter {
 		if (!lineData) {
 			lineData = error.message.match(/^>\s*?(\d+)\s\|\s/m)
 			if (lineData) {
-				if (columnData) lineData[2] = columnData[1].length
 				const columnData = error.message.match(/^\s+\|(\s+)\^+($|\n)/im)
+				if (columnData) lineData[2] = columnData[1].length + 1
 			}
 		}
 
