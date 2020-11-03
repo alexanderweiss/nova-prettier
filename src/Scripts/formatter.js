@@ -1,5 +1,6 @@
 const diff = require('fast-diff')
 const {
+	showError,
 	showActionableError,
 	log,
 	getConfigWithWorkspaceOverride,
@@ -38,7 +39,6 @@ class Formatter {
 	constructor() {
 		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this)
 
-		this.formattedText = new Map()
 		this.emitter = new Emitter()
 
 		this.setupIsReadyPromise()
@@ -127,11 +127,14 @@ class Formatter {
 		this.start()
 	}
 
-	async formatEditor(editor, shouldSave) {
+	async formatEditor(editor, saving) {
 		const { document } = editor
 
+		nova.notifications.cancel('prettier-unsupported-syntax')
+
+		// Don't format-on-save ignore syntaxes.
 		if (
-			shouldSave &&
+			saving &&
 			nova.config.get(
 				`prettier.format-on-save.ignored-syntaxes.${document.syntax}`
 			) === true
@@ -142,64 +145,81 @@ class Formatter {
 			return []
 		}
 
-		log.info(`Formatting ${document.path}`)
+		const pathForConfig = document.path || nova.workspace.path
+		let hasConfig = false
 
-		const documentRange = new Range(0, document.length)
-		const text = editor.getTextInRange(documentRange)
+		if (document.isRemote) {
+			// Don't format-on-save remote documents if they're ignored.
+			if (
+				saving &&
+				getConfigWithWorkspaceOverride('prettier.format-on-save.ignore-remote')
+			) {
+				return []
+			}
+		} else {
+			// Try to resolve configuration using Prettier for non-remote documents.
+			hasConfig = await this.prettierService.request('hasConfig', {
+				pathForConfig,
+			})
 
-		// Skip formatting if the current text matches a saved formatted version
-		const previouslyFormattedText = this.formattedText.get(editor)
-		if (previouslyFormattedText) {
-			this.formattedText.delete(editor)
-			if (previouslyFormattedText === text) return
+			if (
+				!hasConfig &&
+				getConfigWithWorkspaceOverride(
+					'prettier.format-on-save.ignore-without-config'
+				)
+			) {
+				return []
+			}
 		}
 
-		const pathForConfig = document.path || nova.workspace.path
-		const syntax = document.syntax
+		log.info(`Formatting ${document.path}`)
 
 		const options = {
 			...(document.path
 				? { filepath: document.path }
-				: { parser: this.parserForSyntax(syntax) }),
+				: { parser: this.parserForSyntax(document.syntax) }),
+			...(!hasConfig ? this.defaultConfig : {}),
 		}
 
-		// Don't format-on-save remote documents if they're ignored.
-		if (
-			shouldSave &&
-			document.isRemote &&
-			getConfigWithWorkspaceOverride('prettier.format-on-save.ignore-remote')
-		) {
+		const documentRange = new Range(0, document.length)
+		const original = editor.getTextInRange(documentRange)
+
+		const result = await this.prettierService.request('format', {
+			text: original,
+			pathForConfig,
+			ignorePath: saving && this.ignorePath(pathForConfig),
+			options,
+		})
+
+		const { formatted, error, ignored, missingParser } = result
+
+		if (error) {
+			return this.issuesFromPrettierError(error)
+		}
+
+		if (ignored) {
+			log.info(`Prettier is configured to ignore ${document.path}`)
 			return []
 		}
 
-		let result
-		try {
-			result = await this.runPrettier(
-				text,
-				pathForConfig,
-				syntax,
-				shouldSave,
-				document.isRemote,
-				options
-			)
-		} catch (err) {
-			return this.issuesFromPrettierError(err)
-		}
-
-		if (!result) {
-			// TODO: Show warning when formatting using command.
-			log.info(`No result (ignored or no parser) for ${document.path}`)
+		if (missingParser) {
+			if (!saving) {
+				showError(
+					'prettier-unsupported-syntax',
+					`Syntax not supported`,
+					`Prettier doesn't include a Parser for this file and no plugin is installed that does.`
+				)
+			}
+			log.info(`No parser for ${document.path}`)
 			return []
 		}
 
-		const { formatted } = result
-		if (formatted === text) {
+		if (formatted === original) {
 			log.info(`No changes for ${document.path}`)
 			return []
 		}
 
-		log.info(`Applying formatted changes to ${document.path}`)
-		await this.applyResult(editor, result, text)
+		await this.applyResult(editor, original, formatted)
 	}
 
 	ignorePath(path) {
@@ -235,55 +255,8 @@ class Formatter {
 		)
 	}
 
-	async runPrettier(
-		text,
-		pathForConfig,
-		syntax,
-		shouldSave,
-		isRemote,
-		options
-	) {
-		let hasConfig = false
-
-		if (!isRemote) {
-			hasConfig = await this.prettierService.request('hasConfig', {
-				pathForConfig,
-			})
-
-			if (
-				!hasConfig &&
-				getConfigWithWorkspaceOverride(
-					'prettier.format-on-save.ignore-without-config'
-				)
-			) {
-				return null
-			}
-		}
-
-		if (!hasConfig) {
-			options = { ...options, ...this.defaultConfig }
-		}
-
-		const result = await this.prettierService.request('format', {
-			text,
-			pathForConfig,
-			ignorePath: shouldSave && this.ignorePath(pathForConfig),
-			syntax,
-			options,
-		})
-
-		if (!result || !result.error) return result
-
-		const error = new Error()
-		error.name = result.error.name
-		error.message = result.error.message
-		error.stack = result.error.stack
-
-		throw error
-	}
-
-	async applyResult(editor, result, original) {
-		const { formatted } = result
+	async applyResult(editor, original, formatted) {
+		log.info(`Applying formatted changes to ${editor.document.path}`)
 
 		const [cursor, edits] = this.diff(
 			original,
@@ -393,8 +366,7 @@ class Formatter {
 		// If the error doesn't have a message just ignore it.
 		if (typeof error.message !== 'string') return []
 
-		const name = error.name || error.constructor.name
-		if (name === 'UndefinedParserError') throw error
+		if (error.name === 'UndefinedParserError') throw error
 
 		// See if it's a simple error
 		let lineData = error.message.match(/\((\d+):(\d+)\)\n/m)

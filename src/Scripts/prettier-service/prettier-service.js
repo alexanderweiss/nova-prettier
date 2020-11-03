@@ -22,7 +22,8 @@ class PrettierService {
 				options,
 			})
 
-			if (ignored || !parser) return null
+			if (ignored) return { ignored: true }
+			if (!parser) return { missingParser: true }
 
 			const formatted = this.prettier.format(text, config)
 
