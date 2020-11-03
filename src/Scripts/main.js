@@ -1,9 +1,5 @@
 const findPrettier = require('./prettier-installation.js')
-const {
-	showError,
-	showActionableError,
-	getConfigWithWorkspaceOverride,
-} = require('./helpers.js')
+const { showError, getConfigWithWorkspaceOverride } = require('./helpers.js')
 const { Formatter } = require('./formatter.js')
 
 class PrettierExtension {
@@ -22,7 +18,19 @@ class PrettierExtension {
 
 		this.saveListeners = new Map()
 		this.issueCollection = new IssueCollection()
+	}
 
+	setupConfiguration() {
+		nova.config.remove('prettier.use-compatibility-mode')
+
+		nova.workspace.config.observe(
+			'prettier.format-on-save',
+			this.toggleFormatOnSave
+		)
+		nova.config.observe('prettier.format-on-save', this.toggleFormatOnSave)
+	}
+
+	async start() {
 		this.setupConfiguration()
 		nova.workspace.onDidAddTextEditor(this.didAddTextEditor)
 		nova.commands.register('prettier.format', this.didInvokeFormatCommand)
@@ -32,15 +40,19 @@ class PrettierExtension {
 		)
 
 		this.formatter = new Formatter(this.modulePath)
-		findPrettier().then((path) => this.formatter.start(path))
-	}
 
-	setupConfiguration() {
-		nova.workspace.config.observe(
-			'prettier.format-on-save',
-			this.toggleFormatOnSave
-		)
-		nova.config.observe('prettier.format-on-save', this.toggleFormatOnSave)
+		try {
+			const path = await findPrettier()
+			this.formatter.start(path)
+		} catch (err) {
+			if (err.status !== 127) throw err
+
+			return showError(
+				'prettier-resolution-error',
+				`Can't find npm and Prettier`,
+				`Prettier couldn't be found because npm isn't available. Please make sure you have Node installed. If you've only installed Node through NVM, you'll need to change your shell configuration to work with Nova. See https://library.panic.com/nova/environment-variables/`
+			)
+		}
 	}
 
 	toggleFormatOnSave() {
@@ -98,17 +110,9 @@ class PrettierExtension {
 exports.activate = async function () {
 	try {
 		const extension = new PrettierExtension()
-		nova.config.remove('prettier.use-compatibility-mode')
+		await extension.start()
 	} catch (err) {
 		console.error('Unable to set up prettier service', err, err.stack)
-
-		if (err.status === 127) {
-			return showError(
-				'prettier-resolution-error',
-				`Can't find npm and Prettier`,
-				`Prettier couldn't be found because npm isn't available. Please make sure you have Node installed. If you've only installed Node through NVM, you'll need to change your shell configuration to work with Nova. See https://library.panic.com/nova/environment-variables/`
-			)
-		}
 
 		return showError(
 			'prettier-resolution-error',
