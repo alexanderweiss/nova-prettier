@@ -149,10 +149,12 @@ async function installPrettier(directory) {
 var prettierInstallation = async function () {
 	// Try finding in the workspace
 	try {
-		const resolved = await findPrettier(nova.workspace.path);
-		if (resolved) {
-			log$1.info(`Loading project prettier at ${resolved.path}`);
-			return resolved.path
+		if (nova.workspace.path) {
+			const resolved = await findPrettier(nova.workspace.path);
+			if (resolved) {
+				log$1.info(`Loading project prettier at ${resolved.path}`);
+				return resolved.path
+			}
 		}
 	} catch (err) {
 		if (err.status === 127) throw err
@@ -1168,7 +1170,7 @@ class Formatter {
 			) === true
 		) {
 			log$2.info(
-				`Not formatting (${document.syntax}) syntax ignored) ${document.path}`
+				`Not formatting (${document.syntax} syntax ignored) ${document.path}`
 			);
 			return null
 		}
