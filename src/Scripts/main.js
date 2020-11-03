@@ -4,7 +4,7 @@ const {
 	showActionableError,
 	getConfigWithWorkspaceOverride,
 } = require('./helpers.js')
-const { SubprocessFormatter } = require('./formatter.js')
+const { Formatter } = require('./formatter.js')
 
 class PrettierExtension {
 	constructor(modulePath, prettier, parsers) {
@@ -24,7 +24,7 @@ class PrettierExtension {
 		nova.workspace.onDidAddTextEditor(this.didAddTextEditor)
 		nova.commands.register('prettier.format', this.didInvokeFormatCommand)
 
-		this.formatter = new SubprocessFormatter(this.modulePath)
+		this.formatter = new Formatter(this.modulePath)
 		findPrettier().then((path) => this.formatter.start(path))
 	}
 

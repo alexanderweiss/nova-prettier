@@ -36,22 +36,96 @@ const PRETTIER_OPTIONS = [
 
 class Formatter {
 	constructor() {
+		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this)
+
 		this.formattedText = new Map()
 		this.emitter = new Emitter()
+
+		this.setupIsReadyPromise()
+	}
+
+	get defaultConfig() {
+		return Object.fromEntries(
+			PRETTIER_OPTIONS.map((option) => [
+				option,
+				getConfigWithWorkspaceOverride(`prettier.default-config.${option}`),
+			])
+		)
 	}
 
 	get isReady() {
-		return true
+		if (!this._isReadyPromise) {
+			this.showServiceNotRunningError()
+			return false
+		}
+
+		return this._isReadyPromise
 	}
 
-	start() {}
-	stop() {}
+	async start(modulePath) {
+		if (modulePath) this.modulePath = modulePath
+		if (this.prettierService) return
 
-	onFatalError(callback) {
-		this.emitter.on('fatalError', callback)
+		log.info('Starting Prettier service')
+
+		if (!this._isReadyPromise) this.setupIsReadyPromise()
+
+		this.prettierService = new Process('/usr/bin/env', {
+			args: [
+				'node',
+				nova.path.join(
+					nova.extension.path,
+					'Scripts',
+					'prettier-service',
+					'prettier-service.js'
+				),
+				this.modulePath,
+			],
+			stdio: 'jsonrpc',
+		})
+		this.prettierService.onDidExit(this.prettierServiceDidExit)
+		this.prettierService.onNotify('didStart', () => {
+			this._resolveIsReadyPromise(true)
+		})
+		this.prettierService.start()
 	}
 
-	// runPrettier() {}
+	stop() {
+		nova.notifications.cancel('prettier-not-running')
+		if (!this._isReadyPromise) return
+
+		log.info('Stopping Prettier service')
+
+		this.prettierService.terminate()
+		if (this._resolveIsReadyPromise) this._resolveIsReadyPromise(false)
+		this._isReadyPromise = null
+		this.prettierService = null
+	}
+
+	setupIsReadyPromise() {
+		this._isReadyPromise = new Promise((resolve) => {
+			this._resolveIsReadyPromise = resolve
+		})
+	}
+
+	prettierServiceDidExit(exitCode) {
+		if (!this.prettierService) return
+
+		console.error(`Prettier service exited with code ${exitCode}`)
+
+		if (this._resolveIsReadyPromise) this._resolveIsReadyPromise(false)
+		this._isReadyPromise = null
+		this.prettierService = null
+
+		if (this.prettierServiceCrashedRecently) {
+			return this.showServiceNotRunningError()
+		}
+
+		this.prettierServiceCrashedRecently = true
+		setTimeout(() => (this.prettierServiceCrashedRecently = false), 5000)
+
+		this.start()
+	}
 
 	async formatEditor(editor, shouldSave) {
 		const { document } = editor
@@ -173,21 +247,6 @@ class Formatter {
 		return [issue]
 	}
 
-	async applyResult(editor, { formatted, cursorOffset }) {
-		const { document } = editor
-		const documentRange = new Range(0, document.length)
-
-		const editPromise = editor.edit((e) => {
-			e.replace(documentRange, formatted)
-		})
-
-		editPromise.then(() => {
-			editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
-		})
-
-		return editPromise
-	}
-
 	ensureSaved(editor, formatted) {
 		const { document } = editor
 
@@ -220,98 +279,6 @@ class Formatter {
 			default:
 				return syntax
 		}
-	}
-}
-
-class SubprocessFormatter extends Formatter {
-	constructor() {
-		super()
-		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this)
-
-		this.setupIsReadyPromise()
-	}
-
-	get isReady() {
-		if (!this._isReadyPromise) {
-			this.showServiceNotRunningError()
-			return false
-		}
-
-		return this._isReadyPromise
-	}
-
-	get defaultConfig() {
-		return Object.fromEntries(
-			PRETTIER_OPTIONS.map((option) => [
-				option,
-				getConfigWithWorkspaceOverride(`prettier.default-config.${option}`),
-			])
-		)
-	}
-
-	setupIsReadyPromise() {
-		this._isReadyPromise = new Promise((resolve) => {
-			this._resolveIsReadyPromise = resolve
-		})
-	}
-
-	async start(modulePath) {
-		if (modulePath) this.modulePath = modulePath
-		if (this.prettierService) return
-
-		log.info('Starting Prettier service')
-
-		if (!this._isReadyPromise) this.setupIsReadyPromise()
-
-		this.prettierService = new Process('/usr/bin/env', {
-			args: [
-				'node',
-				nova.path.join(
-					nova.extension.path,
-					'Scripts',
-					'prettier-service',
-					'prettier-service.js'
-				),
-				this.modulePath,
-			],
-			stdio: 'jsonrpc',
-		})
-		this.prettierService.onDidExit(this.prettierServiceDidExit)
-		this.prettierService.onNotify('didStart', () => {
-			this._resolveIsReadyPromise(true)
-		})
-		this.prettierService.start()
-	}
-
-	stop() {
-		nova.notifications.cancel('prettier-not-running')
-		if (!this._isReadyPromise) return
-
-		log.info('Stopping Prettier service')
-
-		this.prettierService.terminate()
-		if (this._resolveIsReadyPromise) this._resolveIsReadyPromise(false)
-		this._isReadyPromise = null
-		this.prettierService = null
-	}
-
-	prettierServiceDidExit(exitCode) {
-		if (!this.prettierService) return
-
-		console.error(`Prettier service exited with code ${exitCode}`)
-
-		if (this._resolveIsReadyPromise) this._resolveIsReadyPromise(false)
-		this._isReadyPromise = null
-		this.prettierService = null
-
-		if (this.prettierServiceCrashedRecently) {
-			return this.showServiceNotRunningError()
-		}
-
-		this.prettierServiceCrashedRecently = true
-		setTimeout(() => (this.prettierServiceCrashedRecently = false), 5000)
-
-		this.start()
 	}
 
 	showServiceNotRunningError() {
@@ -390,7 +357,7 @@ class SubprocessFormatter extends Formatter {
 			(cursor) => !text.includes(cursor) && !formatted.includes(cursor)
 		)
 		// Fall back to not knowing the cursor position.
-		if (!cursor) return super.applyResult(editor, result, options)
+		if (!cursor) return super.applyResultWithoutDiff(editor, result, options)
 
 		// Insert the cursors
 		const textWithCursor =
@@ -453,8 +420,23 @@ class SubprocessFormatter extends Formatter {
 			.catch((err) => console.error(err))
 		return editPromise
 	}
+
+	async applyResultWithoutDiff(editor, { formatted, cursorOffset }) {
+		const { document } = editor
+		const documentRange = new Range(0, document.length)
+
+		const editPromise = editor.edit((e) => {
+			e.replace(documentRange, formatted)
+		})
+
+		editPromise.then(() => {
+			editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
+		})
+
+		return editPromise
+	}
 }
 
 module.exports = {
-	SubprocessFormatter,
+	Formatter,
 }
