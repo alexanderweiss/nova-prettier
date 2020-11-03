@@ -11,13 +11,10 @@ export default [
 		plugins: [commonjs(), resolve({ preferBuiltins: true })],
 	},
 	{
-		input: 'src/Scripts/config.js',
-		output: { file: 'prettier.novaextension/Scripts/config.js', format: 'cjs' },
-	},
-	{
 		input: 'src/Scripts/prettier-service/prettier-service.js',
 		output: {
-			file: 'prettier.novaextension/Scripts/prettier-service/prettier-service.js',
+			file:
+				'prettier.novaextension/Scripts/prettier-service/prettier-service.js',
 			format: 'cjs',
 		},
 	},

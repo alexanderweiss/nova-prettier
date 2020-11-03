@@ -127,67 +127,52 @@ class Formatter {
 		this.start()
 	}
 
+	showServiceNotRunningError() {
+		showActionableError(
+			'prettier-not-running',
+			'Prettier stopped running',
+			`Please report report an issue though Extension Library if this problem persits.`,
+			['Restart Prettier'],
+			(r) => {
+				switch (r) {
+					case 0:
+						this.start()
+						break
+				}
+			}
+		)
+	}
+
 	async formatEditor(editor, saving) {
 		const { document } = editor
 
 		nova.notifications.cancel('prettier-unsupported-syntax')
 
-		// Don't format-on-save ignore syntaxes.
-		if (
-			saving &&
-			nova.config.get(
-				`prettier.format-on-save.ignored-syntaxes.${document.syntax}`
-			) === true
-		) {
-			log.info(
-				`Not formatting (${document.syntax}) syntax ignored) ${document.path}`
-			)
-			return []
-		}
-
 		const pathForConfig = document.path || nova.workspace.path
-		let hasConfig = false
 
-		if (document.isRemote) {
-			// Don't format-on-save remote documents if they're ignored.
-			if (
-				saving &&
-				getConfigWithWorkspaceOverride('prettier.format-on-save.ignore-remote')
-			) {
-				return []
-			}
-		} else {
-			// Try to resolve configuration using Prettier for non-remote documents.
-			hasConfig = await this.prettierService.request('hasConfig', {
-				pathForConfig,
-			})
+		const shouldApplyDefaultConfig = await this.shouldApplyDefaultConfig(
+			document,
+			saving,
+			pathForConfig
+		)
 
-			if (
-				!hasConfig &&
-				getConfigWithWorkspaceOverride(
-					'prettier.format-on-save.ignore-without-config'
-				)
-			) {
-				return []
-			}
-		}
+		if (shouldApplyDefaultConfig === null) return []
 
 		log.info(`Formatting ${document.path}`)
 
+		const documentRange = new Range(0, document.length)
+		const original = editor.getTextInRange(documentRange)
 		const options = {
 			...(document.path
 				? { filepath: document.path }
-				: { parser: this.parserForSyntax(document.syntax) }),
-			...(!hasConfig ? this.defaultConfig : {}),
+				: { parser: this.getParserForSyntax(document.syntax) }),
+			...(shouldApplyDefaultConfig ? this.defaultConfig : {}),
 		}
 
-		const documentRange = new Range(0, document.length)
-		const original = editor.getTextInRange(documentRange)
-
 		const result = await this.prettierService.request('format', {
-			text: original,
+			original,
 			pathForConfig,
-			ignorePath: saving && this.ignorePath(pathForConfig),
+			ignorePath: saving && this.getIgnorePath(pathForConfig),
 			options,
 		})
 
@@ -222,12 +207,55 @@ class Formatter {
 		await this.applyResult(editor, original, formatted)
 	}
 
-	ignorePath(path) {
+	async shouldApplyDefaultConfig(document, saving, pathForConfig) {
+		// Don't format-on-save ignore syntaxes.
+		if (
+			saving &&
+			nova.config.get(
+				`prettier.format-on-save.ignored-syntaxes.${document.syntax}`
+			) === true
+		) {
+			log.info(
+				`Not formatting (${document.syntax}) syntax ignored) ${document.path}`
+			)
+			return null
+		}
+
+		let hasConfig = false
+
+		if (document.isRemote) {
+			// Don't format-on-save remote documents if they're ignored.
+			if (
+				saving &&
+				getConfigWithWorkspaceOverride('prettier.format-on-save.ignore-remote')
+			) {
+				return null
+			}
+		} else {
+			// Try to resolve configuration using Prettier for non-remote documents.
+			hasConfig = await this.prettierService.request('hasConfig', {
+				pathForConfig,
+			})
+
+			if (
+				!hasConfig &&
+				getConfigWithWorkspaceOverride(
+					'prettier.format-on-save.ignore-without-config'
+				)
+			) {
+				return null
+			}
+		}
+
+		return !hasConfig
+	}
+
+	getIgnorePath(path) {
 		const expectedIgnoreDir = nova.workspace.path || nova.path.dirname(path)
 		return nova.path.join(expectedIgnoreDir, '.prettierignore')
 	}
 
-	parserForSyntax(syntax) {
+	getParserForSyntax(syntax) {
 		switch (syntax) {
 			case 'javascript':
 			case 'jsx':
@@ -237,22 +265,6 @@ class Formatter {
 			default:
 				return syntax
 		}
-	}
-
-	showServiceNotRunningError() {
-		showActionableError(
-			'prettier-not-running',
-			'Prettier stopped running',
-			`Please report report an issue though Extension Library if this problem persits.`,
-			['Restart Prettier'],
-			(r) => {
-				switch (r) {
-					case 0:
-						this.start()
-						break
-				}
-			}
-		)
 	}
 
 	async applyResult(editor, original, formatted) {
