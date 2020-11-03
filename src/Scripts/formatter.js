@@ -156,13 +156,11 @@ class Formatter {
 
 		const pathForConfig = document.path || nova.workspace.path
 		const syntax = document.syntax
-		const selectionStart = editor.selectedRange.start
-		const selectionEnd = editor.selectedRange.end
+
 		const options = {
 			...(document.path
 				? { filepath: document.path }
 				: { parser: this.parserForSyntax(syntax) }),
-			cursorOffset: selectionEnd,
 		}
 
 		// Don't format-on-save remote documents if they're ignored.
@@ -201,44 +199,7 @@ class Formatter {
 		}
 
 		log.info(`Applying formatted changes to ${document.path}`)
-		await this.applyResult(editor, result, {
-			text,
-			selectionStart,
-			selectionEnd,
-		})
-	}
-
-	issuesFromPrettierError(error) {
-		// If the error doesn't have a message just ignore it.
-		if (typeof error.message !== 'string') return []
-
-		const name = error.name || error.constructor.name
-		if (name === 'UndefinedParserError') throw error
-
-		// See if it's a simple error
-		let lineData = error.message.match(/\((\d+):(\d+)\)\n/m)
-		// See if it's a visual error
-		if (!lineData) {
-			lineData = error.message.match(/^>\s*?(\d+)\s\|\s/m)
-			if (lineData) {
-				const columnData = error.message.match(/^\s+\|(\s+)\^+($|\n)/im)
-				lineData[2] = columnData ? columnData[1].length + 1 : 0
-			}
-		}
-
-		if (!lineData) {
-			throw error
-		}
-
-		const issue = new Issue()
-		issue.message = error.stack
-			? error.message
-			: error.message.split(/\n\s*?at\s+/i)[0] // When error is only a message it probably has the stack trace appended. Remove it.
-		issue.severity = IssueSeverity.Error
-		issue.line = lineData[1]
-		issue.column = lineData[2]
-
-		return [issue]
+		await this.applyResult(editor, result, text)
 	}
 
 	ignorePath(path) {
@@ -282,8 +243,6 @@ class Formatter {
 		isRemote,
 		options
 	) {
-		delete options.cursorOffset
-
 		let hasConfig = false
 
 		if (!isRemote) {
@@ -323,38 +282,58 @@ class Formatter {
 		throw error
 	}
 
-	async applyResult(editor, result, options) {
+	async applyResult(editor, result, original) {
 		const { formatted } = result
-		const { text, selectionStart, selectionEnd } = options
 
-		// TODO: Multi-cursor support.
-
-		// Find a cursor that does not occur in this document
-		const cursor = POSSIBLE_CURSORS.find(
-			(cursor) => !text.includes(cursor) && !formatted.includes(cursor)
+		const [cursor, edits] = this.diff(
+			original,
+			formatted,
+			editor.selectedRanges
 		)
-		// Fall back to not knowing the cursor position.
-		if (!cursor) return super.applyResultWithoutDiff(editor, result, options)
 
-		// Insert the cursors
-		const textWithCursor =
-			text.slice(0, selectionStart) +
-			cursor +
-			text.slice(selectionStart, selectionEnd) +
-			cursor +
-			text.slice(selectionEnd)
-
-		// Diff
-		const edits = diff(textWithCursor, formatted)
-
-		if (text !== editor.getTextInRange(new Range(0, editor.document.length))) {
+		if (
+			original !== editor.getTextInRange(new Range(0, editor.document.length))
+		) {
 			log.info(`Document ${editor.document.path} was changed while formatting`)
 			return
 		}
 
-		let newSelectionStart
-		let newSelectionEnd
-		const editPromise = editor.edit((e) => {
+		if (edits) {
+			return this.applyDiff(editor, cursor, edits)
+		}
+
+		return this.replace(editor, formatted)
+	}
+
+	diff(original, formatted, selectedRanges) {
+		// Find a cursor that does not occur in this document
+		const cursor = POSSIBLE_CURSORS.find(
+			(cursor) => !original.includes(cursor) && !formatted.includes(cursor)
+		)
+		// Fall back to not knowing the cursor position.
+		if (!cursor) return null
+
+		let originalWithCursors = ''
+		let lastEnd = 0
+
+		for (const selection of selectedRanges) {
+			originalWithCursors +=
+				original.slice(lastEnd, selection.start) +
+				cursor +
+				original.slice(selection.start, selection.end) +
+				cursor
+			lastEnd = selection.end
+		}
+
+		originalWithCursors += original.slice(lastEnd)
+
+		// Diff
+		return [cursor, diff(originalWithCursors, formatted)]
+	}
+
+	async applyDiff(editor, cursor, edits) {
+		const selections = []
+		await editor.edit((e) => {
 			let offset = 0
 			let toRemove = 0
 
@@ -370,9 +349,13 @@ class Formatter {
 					while (true) {
 						cursorIndex = str.indexOf(cursor, cursorIndex + 1)
 						if (cursorIndex === -1) break
-						newSelectionStart
-							? (newSelectionEnd = offset)
-							: (newSelectionStart = offset)
+
+						const lastSelection = selections[selections.length - 1]
+						if (!lastSelection || lastSelection[1]) {
+							selections[selections.length] = [offset]
+						} else {
+							lastSelection[1] = offset
+						}
 						toRemove -= cursor.length
 					}
 
@@ -390,27 +373,53 @@ class Formatter {
 			}
 		})
 
-		editPromise
-			.then(() => {
-				editor.selectedRanges = [new Range(newSelectionStart, newSelectionEnd)]
-			})
-			.catch((err) => console.error(err))
-		return editPromise
+		editor.selectedRanges = selections.map((s) => new Range(s[0], s[1]))
 	}
 
-	async applyResultWithoutDiff(editor, { formatted, cursorOffset }) {
+	async replace(editor, formatted) {
 		const { document } = editor
+
+		const cursorPosition = editor.selectedRange.end
 		const documentRange = new Range(0, document.length)
 
-		const editPromise = editor.edit((e) => {
+		await editor.edit((e) => {
 			e.replace(documentRange, formatted)
 		})
 
-		editPromise.then(() => {
-			editor.selectedRanges = [new Range(cursorOffset, cursorOffset)]
-		})
+		editor.selectedRanges = [new Range(cursorPosition, cursorPosition)]
+	}
 
-		return editPromise
+	issuesFromPrettierError(error) {
+		// If the error doesn't have a message just ignore it.
+		if (typeof error.message !== 'string') return []
+
+		const name = error.name || error.constructor.name
+		if (name === 'UndefinedParserError') throw error
+
+		// See if it's a simple error
+		let lineData = error.message.match(/\((\d+):(\d+)\)\n/m)
+		// See if it's a visual error
+		if (!lineData) {
+			lineData = error.message.match(/^>\s*?(\d+)\s\|\s/m)
+			if (lineData) {
+				const columnData = error.message.match(/^\s+\|(\s+)\^+($|\n)/im)
+				lineData[2] = columnData ? columnData[1].length + 1 : 0
+			}
+		}
+
+		if (!lineData) {
+			throw error
+		}
+
+		const issue = new Issue()
+		issue.message = error.stack
+			? error.message
+			: error.message.split(/\n\s*?at\s+/i)[0] // When error is only a message it probably has the stack trace appended. Remove it.
+		issue.severity = IssueSeverity.Error
+		issue.line = lineData[1]
+		issue.column = lineData[2]
+
+		return [issue]
 	}
 }
 
