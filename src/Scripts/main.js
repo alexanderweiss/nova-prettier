@@ -2,10 +2,9 @@ const ensureInstalled = require('./install.js')
 const {
 	showError,
 	showActionableError,
-	log,
 	getConfigWithWorkspaceOverride,
 } = require('./helpers.js')
-const { SubprocessFormatter, RuntimeFormatter } = require('./formatter.js')
+const { SubprocessFormatter } = require('./formatter.js')
 
 class PrettierExtension {
 	constructor(modulePath, prettier, parsers) {
@@ -17,7 +16,6 @@ class PrettierExtension {
 		this.toggleFormatOnSave = this.toggleFormatOnSave.bind(this)
 		this.editorWillSave = this.editorWillSave.bind(this)
 		this.didInvokeFormatCommand = this.didInvokeFormatCommand.bind(this)
-		this.toggleFormatter = this.toggleFormatter.bind(this)
 
 		this.saveListeners = new Map()
 		this.issueCollection = new IssueCollection()
@@ -25,6 +23,9 @@ class PrettierExtension {
 		this.setupConfiguration()
 		nova.workspace.onDidAddTextEditor(this.didAddTextEditor)
 		nova.commands.register('prettier.format', this.didInvokeFormatCommand)
+
+		this.formatter = new SubprocessFormatter(this.modulePath)
+		this.formatter.start()
 	}
 
 	setupConfiguration() {
@@ -33,15 +34,6 @@ class PrettierExtension {
 			this.toggleFormatOnSave
 		)
 		nova.config.observe('prettier.format-on-save', this.toggleFormatOnSave)
-		nova.config.observe('prettier.use-compatibility-mode', this.toggleFormatter)
-	}
-
-	toggleFormatter(useCompatibilityMode) {
-		if (this.formatter) this.formatter.stop()
-		this.formatter = useCompatibilityMode
-			? new RuntimeFormatter(this.modulePath, this.prettier, this.parsers)
-			: new SubprocessFormatter(this.modulePath)
-		this.formatter.start()
 	}
 
 	toggleFormatOnSave() {
@@ -91,24 +83,11 @@ class PrettierExtension {
 exports.activate = async function () {
 	try {
 		await ensureInstalled()
-		const { modulePath, prettier, parsers } = await require('./prettier.js')()
+		const modulePath = await require('./prettier.js')()
 
-		const extension = new PrettierExtension(modulePath, prettier, parsers)
+		const extension = new PrettierExtension(modulePath)
 
-		if (nova.config.get('prettier.use-compatibility-mode')) {
-			showActionableError(
-				'prettier-compatibility-mode-warning',
-				`Compatibility mode will soon disappear`,
-				`Please create an issue on Github with information about what version of macOS and Node you're using so we can make sure Prettier keeps working for you.`,
-				['Create issue'],
-				(action) => {
-					if (!action) return
-					nova.openURL(
-						'https://github.com/alexanderweiss/nova-prettier/issues/new'
-					)
-				}
-			)
-		}
+		nova.config.remove('prettier.use-compatibility-mode')
 	} catch (err) {
 		console.error('Unable to set up prettier service', err, err.stack)
 

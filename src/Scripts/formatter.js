@@ -1,6 +1,5 @@
 const diff = require('fast-diff')
 const {
-	showError,
 	showActionableError,
 	log,
 	getConfigWithWorkspaceOverride,
@@ -314,14 +313,11 @@ class SubprocessFormatter extends Formatter {
 		showActionableError(
 			'prettier-not-running',
 			'Prettier stopped running',
-			`Try restarting, or run in compatibility mode instead (also available in settings). If you do, please check the Extension Console for log output and report an issue though Extension Library.`,
-			['Use compatibility mode', 'Restart Prettier'],
+			`Please report report an issue though Extension Library if this problem persits.`,
+			['Restart Prettier'],
 			(r) => {
 				switch (r) {
 					case 0:
-						nova.config.set('prettier.use-compatibility-mode', true)
-						break
-					case 1:
 						this.start()
 						break
 				}
@@ -454,117 +450,6 @@ class SubprocessFormatter extends Formatter {
 	}
 }
 
-class RuntimeFormatter extends Formatter {
-	constructor(modulePath, prettier, parsers) {
-		super()
-
-		this.modulePath = modulePath
-		this.prettier = prettier
-		this.parsers = parsers
-
-		this.configs = new Map()
-	}
-
-	start() {
-		log.info('Starting runtime formatter')
-	}
-
-	async getConfigForPath(path) {
-		// TODO: Invalidate cache at some point?
-		if (this.configs.has(path)) return this.configs.get(path)
-
-		const config = await this.resolveConfigForPath(path)
-		this.configs.set(path, config)
-
-		return config
-	}
-
-	async resolveConfigForPath(path) {
-		let resolve, reject
-		const promise = new Promise((_resolve, _reject) => {
-			resolve = _resolve
-			reject = _reject
-		})
-
-		const process = new Process('/usr/bin/env', {
-			args: [
-				'node',
-				nova.path.join(nova.extension.path, 'Scripts', 'config.js'),
-				this.modulePath,
-				this.ignorePath(path),
-				path,
-			],
-		})
-
-		const errors = []
-
-		process.onStdout((result) => {
-			try {
-				resolve(JSON.parse(result))
-			} catch (err) {
-				reject(err)
-			}
-		})
-		process.onStderr((err) => {
-			errors.push(err)
-		})
-		process.onDidExit((status) => {
-			if (status === '0') return
-			reject(errors.join('\n'))
-		})
-		process.start()
-
-		return promise
-	}
-
-	showConfigResolutionError(path) {
-		showError(
-			'prettier-config-resolution-error',
-			'Failed to resolve Prettier configuration',
-			`File to be formatted: ${path}`
-		)
-	}
-
-	async runPrettier(
-		text,
-		pathForConfig,
-		syntax,
-		_shouldSave,
-		_isRemote,
-		options
-	) {
-		let config = {}
-		let info = {}
-
-		// Don't handle PHP syntax. Required because Nova considers PHP a
-		// sub-syntax of HTML and enables the command.
-		if (syntax === 'php') return null
-
-		if (pathForConfig) {
-			try {
-				// TODO: Always format when shouldSave === false
-				;({ config, info } = await this.getConfigForPath(pathForConfig))
-			} catch (err) {
-				console.warn(
-					`Unable to get config for ${pathForConfig}: ${err}`,
-					err.stack
-				)
-				this.showConfigResolutionError(pathForConfig)
-			}
-		}
-
-		if (options.filepath && info.ignored === true) return null
-		if (!options.parser && !info.inferredParser) return null
-
-		return this.prettier.formatWithCursor(text, {
-			...config,
-			...options,
-			plugins: this.parsers,
-		})
-	}
-}
-
 module.exports = {
 	SubprocessFormatter,
-	RuntimeFormatter,
 }

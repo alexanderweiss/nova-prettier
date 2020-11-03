@@ -51,32 +51,7 @@ async function findPrettier() {
 	return promise
 }
 
-function relativePath(path) {
-	if (!path) return
-	return nova.path.join(
-		...nova.path.split(nova.extension.path).map(() => '..'),
-		path
-	)
-}
-
-function load(modulePath) {
-	return {
-		modulePath,
-		prettier: require(relativePath(
-			nova.path.join(modulePath, 'standalone.js')
-		)),
-		parsers: [
-			...nova.fs
-				.listdir(modulePath)
-				.filter((p) => p.match(/^parser-.*?\.js$/))
-				.map((p) => require(relativePath(nova.path.join(modulePath, p)))),
-		],
-	}
-}
-
 module.exports = async function () {
-	if (loaded) return loaded
-
 	let workspaceModulePath
 	try {
 		workspaceModulePath = await findPrettier()
@@ -86,23 +61,15 @@ module.exports = async function () {
 	}
 
 	if (workspaceModulePath) {
-		try {
-			console.info(`Loading project prettier at ${workspaceModulePath}`)
-			loaded = load(workspaceModulePath)
-		} catch (err) {
-			console.warn(`Couldn't load project prettier: ${err}`, err.stack)
-		}
+		console.info(`Loading project prettier at ${workspaceModulePath}`)
+		return workspaceModulePath
 	}
 
-	if (!loaded) {
-		const extensionModulePath = nova.path.join(
-			nova.extension.path,
-			'node_modules',
-			'prettier'
-		)
-		console.info(`Loading bundled prettier at ${extensionModulePath}`)
-		loaded = load(extensionModulePath)
-	}
-
-	return loaded
+	const extensionModulePath = nova.path.join(
+		nova.extension.path,
+		'node_modules',
+		'prettier'
+	)
+	console.info(`Loading bundled prettier at ${extensionModulePath}`)
+	return extensionModulePath
 }
