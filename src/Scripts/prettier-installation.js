@@ -57,10 +57,12 @@ async function installPrettier(directory) {
 module.exports = async function () {
 	// Try finding in the workspace
 	try {
-		const resolved = await findPrettier(nova.workspace.path)
-		if (resolved) {
-			log.info(`Loading project prettier at ${resolved.path}`)
-			return resolved.path
+		if (nova.workspace.path) {
+			const resolved = await findPrettier(nova.workspace.path)
+			if (resolved) {
+				log.info(`Loading project prettier at ${resolved.path}`)
+				return resolved.path
+			}
 		}
 	} catch (err) {
 		if (err.status === 127) throw err
