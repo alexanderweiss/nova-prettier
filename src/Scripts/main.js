@@ -16,6 +16,9 @@ class PrettierExtension {
 		this.toggleFormatOnSave = this.toggleFormatOnSave.bind(this)
 		this.editorWillSave = this.editorWillSave.bind(this)
 		this.didInvokeFormatCommand = this.didInvokeFormatCommand.bind(this)
+		this.didInvokeFormatSelectionCommand = this.didInvokeFormatSelectionCommand.bind(
+			this
+		)
 
 		this.saveListeners = new Map()
 		this.issueCollection = new IssueCollection()
@@ -23,6 +26,10 @@ class PrettierExtension {
 		this.setupConfiguration()
 		nova.workspace.onDidAddTextEditor(this.didAddTextEditor)
 		nova.commands.register('prettier.format', this.didInvokeFormatCommand)
+		nova.commands.register(
+			'prettier.format-selection',
+			this.didInvokeFormatSelectionCommand
+		)
 
 		this.formatter = new Formatter(this.modulePath)
 		findPrettier().then((path) => this.formatter.start(path))
@@ -55,19 +62,27 @@ class PrettierExtension {
 	}
 
 	async editorWillSave(editor) {
-		await this.formatEditor(editor, true)
+		await this.formatEditor(editor, true, false)
 	}
 
 	async didInvokeFormatCommand(editor) {
-		await this.formatEditor(editor, false)
+		await this.formatEditor(editor, false, false)
 	}
 
-	async formatEditor(editor, isSaving) {
+	async didInvokeFormatSelectionCommand(editor) {
+		await this.formatEditor(editor, false, true)
+	}
+
+	async formatEditor(editor, isSaving, selectionOnly) {
 		try {
 			const ready = await this.formatter.isReady
 			if (!ready) return
 
-			const issues = await this.formatter.formatEditor(editor, isSaving)
+			const issues = await this.formatter.formatEditor(
+				editor,
+				isSaving,
+				selectionOnly
+			)
 			this.issueCollection.set(editor.document.uri, issues)
 		} catch (err) {
 			console.error(err, err.stack)

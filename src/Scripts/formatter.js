@@ -143,7 +143,7 @@ class Formatter {
 		)
 	}
 
-	async formatEditor(editor, saving) {
+	async formatEditor(editor, saving, selectionOnly) {
 		const { document } = editor
 
 		nova.notifications.cancel('prettier-unsupported-syntax')
@@ -167,6 +167,12 @@ class Formatter {
 				? { filepath: document.path }
 				: { parser: this.getParserForSyntax(document.syntax) }),
 			...(shouldApplyDefaultConfig ? this.defaultConfig : {}),
+			...(selectionOnly
+				? {
+						rangeStart: editor.selectedRange.start,
+						rangeEnd: editor.selectedRange.end,
+				  }
+				: {}),
 		}
 
 		const result = await this.prettierService.request('format', {

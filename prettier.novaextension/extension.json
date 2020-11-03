@@ -15,9 +15,14 @@
 	"commands": {
 		"editor": [
 			{
-				"title": "Format with Prettier",
+				"title": "Format",
 				"command": "prettier.format",
 				"shortcut": "option-shift-f"
+			},
+			{
+				"title": "Format selection",
+				"command": "prettier.format-selection",
+				"when": "editorHasSelection"
 			}
 		]
 	},
