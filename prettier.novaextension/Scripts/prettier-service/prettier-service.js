@@ -16,7 +16,7 @@ class PrettierService {
 		this.jsonRpc.notify('didStart');
 	}
 
-	async format({ text, pathForConfig, ignorePath, options }) {
+	async format({ original, pathForConfig, ignorePath, options }) {
 		try {
 			const { ignored, parser, config } = await this.getConfig({
 				pathForConfig,
@@ -24,9 +24,10 @@ class PrettierService {
 				options,
 			});
 
-			if (ignored || !parser) return null
+			if (ignored) return { ignored: true }
+			if (!parser) return { missingParser: true }
 
-			const formatted = this.prettier.format(text, config);
+			const formatted = this.prettier.format(original, config);
 
 			return { formatted }
 		} catch (err) {

@@ -1,6 +1,6 @@
 {
 	"name": "nova-prettier",
-	"version": "1.8.2",
+	"version": "2.0.0",
 	"description": "",
 	"main": "index.js",
 	"scripts": {
@@ -17,7 +17,9 @@
 	},
 	"homepage": "https://github.com/alexanderweiss/nova-prettier#readme",
 	"dependencies": {
-		"fast-diff": "^1.2.0"
+		"@prettier/plugin-ruby": "^0.20.1",
+		"fast-diff": "^1.2.0",
+		"prettier": "^2.1.2"
 	},
 	"devDependencies": {
 		"@rollup/plugin-commonjs": "^13.0.2",

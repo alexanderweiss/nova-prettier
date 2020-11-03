@@ -1,3 +1,22 @@
+## 2.0.0 - Future
+
+### Added
+
+- Added `Format selection` command
+- All selections/cursors are now maintained after formatting
+- A warning is now shown if a document uses an unsupported syntax when formatting manually
+
+### Changed
+
+- **(Breaking)** Removed compatibility mode
+- Renamed `Format with Prettier` to `Format` and moved it into a submenu
+- Nova will now wait for formatting before saving instead of saving twice
+- Formatting a file while the extension is installing Prettier will be delayed instead of getting ignored entirely
+
+### Fixed
+
+- Fixes project Prettier not getting found in some cases
+
 ## 1.8.2 - 2020-10-26
 
 ### Fixed
