@@ -222,7 +222,7 @@ class Formatter {
 			) === true
 		) {
 			log.info(
-				`Not formatting (${document.syntax}) syntax ignored) ${document.path}`
+				`Not formatting (${document.syntax} syntax ignored) ${document.path}`
 			)
 			return null
 		}
