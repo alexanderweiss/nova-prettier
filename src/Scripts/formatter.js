@@ -201,17 +201,11 @@ class Formatter {
 		}
 
 		log.info(`Applying formatted changes to ${document.path}`)
-		let editPromise = this.applyResult(editor, result, {
+		await this.applyResult(editor, result, {
 			text,
 			selectionStart,
 			selectionEnd,
 		})
-		if (shouldSave) {
-			editPromise = editPromise.then(() => {
-				this.ensureSaved(editor, formatted)
-			})
-		}
-		editPromise.catch((err) => console.error(err, err.stack))
 	}
 
 	issuesFromPrettierError(error) {
@@ -245,23 +239,6 @@ class Formatter {
 		issue.column = lineData[2]
 
 		return [issue]
-	}
-
-	ensureSaved(editor, formatted) {
-		const { document } = editor
-
-		if (!document.isDirty) return
-		if (document.isClosed) return
-		if (document.isUntitled) return
-
-		const documentRange = new Range(0, document.length)
-		const text = editor.getTextInRange(documentRange)
-		if (formatted !== text) return
-
-		// Our changes weren't included in the save because it took too
-		// long. Save it once more but skip formatting for that save.
-		this.formattedText.set(editor, formatted)
-		editor.save()
 	}
 
 	ignorePath(path) {

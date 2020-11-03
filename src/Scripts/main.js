@@ -55,11 +55,11 @@ class PrettierExtension {
 	}
 
 	async editorWillSave(editor) {
-		this.formatEditor(editor, true)
+		await this.formatEditor(editor, true)
 	}
 
 	async didInvokeFormatCommand(editor) {
-		this.formatEditor(editor, false)
+		await this.formatEditor(editor, false)
 	}
 
 	async formatEditor(editor, isSaving) {
