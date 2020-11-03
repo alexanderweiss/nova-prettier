@@ -224,11 +224,11 @@ class Formatter {
 }
 
 class SubprocessFormatter extends Formatter {
-	constructor(modulePath) {
+	constructor() {
 		super()
-		this.modulePath = modulePath
-
 		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this)
+
+		this.setupIsReadyPromise()
 	}
 
 	get isReady() {
@@ -249,14 +249,19 @@ class SubprocessFormatter extends Formatter {
 		)
 	}
 
-	async start() {
-		if (this._isReadyPromise) return
-
-		log.info('Starting Prettier service')
-
+	setupIsReadyPromise() {
 		this._isReadyPromise = new Promise((resolve) => {
 			this._resolveIsReadyPromise = resolve
 		})
+	}
+
+	async start(modulePath) {
+		if (modulePath) this.modulePath = modulePath
+		if (this.prettierService) return
+
+		log.info('Starting Prettier service')
+
+		if (!this._isReadyPromise) this.setupIsReadyPromise()
 
 		this.prettierService = new Process('/usr/bin/env', {
 			args: [

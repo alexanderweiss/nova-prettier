@@ -1,3 +1,10 @@
+class ProcessError extends Error {
+	constructor(status, message) {
+		super(message)
+		this.status = status
+	}
+}
+
 function showError(id, title, body) {
 	let request = new NotificationRequest(id)
 
@@ -42,8 +49,24 @@ function getWorkspaceConfig(name) {
 	}
 }
 
+function handleProcessResult(process, reject, resolve) {
+	const errors = []
+	process.onStderr((err) => {
+		errors.push(err)
+	})
+
+	process.onDidExit((status) => {
+		if (status === 0) {
+			if (resolve) resolve()
+			return
+		}
+
+		reject(new ProcessError(status, errors.join('\n')))
+	})
+}
+
 const log = Object.fromEntries(
-	['log', 'info'].map((fn) => [
+	['log', 'info', 'warn'].map((fn) => [
 		fn,
 		(...args) => {
 			if (!nova.inDevMode() && !nova.config.get('prettier.debug.logging')) {
@@ -59,4 +82,6 @@ module.exports = {
 	showActionableError,
 	log,
 	getConfigWithWorkspaceOverride,
+	ProcessError,
+	handleProcessResult,
 }

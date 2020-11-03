@@ -1,4 +1,4 @@
-const ensureInstalled = require('./install.js')
+const findPrettier = require('./prettier-installation.js')
 const {
 	showError,
 	showActionableError,
@@ -25,7 +25,7 @@ class PrettierExtension {
 		nova.commands.register('prettier.format', this.didInvokeFormatCommand)
 
 		this.formatter = new SubprocessFormatter(this.modulePath)
-		this.formatter.start()
+		findPrettier().then((path) => this.formatter.start(path))
 	}
 
 	setupConfiguration() {
@@ -82,11 +82,7 @@ class PrettierExtension {
 
 exports.activate = async function () {
 	try {
-		await ensureInstalled()
-		const modulePath = await require('./prettier.js')()
-
-		const extension = new PrettierExtension(modulePath)
-
+		const extension = new PrettierExtension()
 		nova.config.remove('prettier.use-compatibility-mode')
 	} catch (err) {
 		console.error('Unable to set up prettier service', err, err.stack)

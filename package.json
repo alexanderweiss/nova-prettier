@@ -17,8 +17,7 @@
 	},
 	"homepage": "https://github.com/alexanderweiss/nova-prettier#readme",
 	"dependencies": {
-		"fast-diff": "^1.2.0",
-		"nova-npm-executable": "^0.1.1"
+		"fast-diff": "^1.2.0"
 	},
 	"devDependencies": {
 		"@rollup/plugin-commonjs": "^13.0.2",

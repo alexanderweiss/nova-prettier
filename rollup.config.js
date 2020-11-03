@@ -8,7 +8,6 @@ export default [
 			file: 'prettier.novaextension/Scripts/main.js',
 			format: 'cjs',
 		},
-		external: (id) => id.match(/.*?prettier\.js$/m),
 		plugins: [commonjs(), resolve({ preferBuiltins: true })],
 	},
 	{
@@ -26,13 +25,6 @@ export default [
 		input: 'src/Scripts/prettier-service/json-rpc.js',
 		output: {
 			file: 'prettier.novaextension/Scripts/prettier-service/json-rpc.js',
-			format: 'cjs',
-		},
-	},
-	{
-		input: 'src/Scripts/prettier.js',
-		output: {
-			file: 'prettier.novaextension/Scripts/prettier.js',
 			format: 'cjs',
 		},
 	},
