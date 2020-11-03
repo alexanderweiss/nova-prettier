@@ -12,6 +12,7 @@
 - Renamed `Format with Prettier` to `Format` and moved it into a submenu
 - Nova will now wait for formatting before saving instead of saving twice
 - Formatting a file while the extension is installing Prettier will be delayed instead of getting ignored entirely
+- Disabling debug logging now also disables logging about finding Prettier
 
 ### Fixed
 
