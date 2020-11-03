@@ -13,7 +13,7 @@ async function findPrettier(directory) {
 	})
 
 	process.onStdout((result) => {
-		if (!result) return resolve(null)
+		if (!result || !result.trim()) return
 
 		const [path, name, status, extra] = result.trim().split(':')
 		if (!name || !name.startsWith('prettier@')) return resolve(null)
@@ -30,7 +30,7 @@ async function findPrettier(directory) {
 		})
 	})
 
-	handleProcessResult(process, reject)
+	handleProcessResult(process, reject, resolve)
 	process.start()
 
 	return promise
