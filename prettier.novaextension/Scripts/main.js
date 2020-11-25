@@ -100,7 +100,7 @@ async function findPrettier(directory) {
 	});
 
 	const process = new Process('/usr/bin/env', {
-		args: ['npm', 'll', 'prettier', '--parseable', '--depth', '0'],
+		args: ['npm', 'ls', 'prettier', '--parseable', '--long', '--depth', '0'],
 		cwd: directory,
 	});
 
