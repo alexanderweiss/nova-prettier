@@ -1,3 +1,14 @@
+## 2.1.0 - 2020-11-25
+
+### Changed
+
+- Updated bundled Prettier PHP plugin to 0.16.0.
+- Updated bundled Prettier to 2.2.0.
+
+### Fixed
+
+- Fixes project Prettier not getting found when using npm v7.0.0
+
 ## 2.0.0 - 2020-11-03
 
 ### Added
@@ -151,7 +162,7 @@
 
 ### Changed
 
-- **(Breaking)** Updated bundle Prettier to 2.1.2.
+- **(Breaking)** Updated bundled Prettier to 2.1.2.
 
 ## 1.2.1 - 2020-09-17
 
