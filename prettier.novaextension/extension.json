@@ -20,9 +20,13 @@
 				"shortcut": "option-shift-f"
 			},
 			{
-				"title": "Format selection",
+				"title": "Format Selection",
 				"command": "prettier.format-selection",
 				"when": "editorHasSelection"
+			},
+			{
+				"title": "Save Without Formatting",
+				"command": "prettier.save-without-formatting"
 			}
 		]
 	},

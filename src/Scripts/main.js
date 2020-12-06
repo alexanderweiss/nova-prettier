@@ -4,10 +4,6 @@ const { Formatter } = require('./formatter.js')
 
 class PrettierExtension {
 	constructor(modulePath, prettier, parsers) {
-		this.modulePath = modulePath
-		this.prettier = prettier
-		this.parsers = parsers
-
 		this.didAddTextEditor = this.didAddTextEditor.bind(this)
 		this.toggleFormatOnSave = this.toggleFormatOnSave.bind(this)
 		this.editorWillSave = this.editorWillSave.bind(this)
@@ -15,8 +11,16 @@ class PrettierExtension {
 		this.didInvokeFormatSelectionCommand = this.didInvokeFormatSelectionCommand.bind(
 			this
 		)
+		this.didInvokeSaveWithoutFormattingCommand = this.didInvokeSaveWithoutFormattingCommand.bind(
+			this
+		)
+
+		this.modulePath = modulePath
+		this.prettier = prettier
+		this.parsers = parsers
 
 		this.saveListeners = new Map()
+		this.ignoredEditors = new Set()
 		this.issueCollection = new IssueCollection()
 	}
 
@@ -37,6 +41,10 @@ class PrettierExtension {
 		nova.commands.register(
 			'prettier.format-selection',
 			this.didInvokeFormatSelectionCommand
+		)
+		nova.commands.register(
+			'prettier.save-without-formatting',
+			this.didInvokeSaveWithoutFormattingCommand
 		)
 
 		this.formatter = new Formatter(this.modulePath)
@@ -85,7 +93,14 @@ class PrettierExtension {
 		await this.formatEditor(editor, false, true)
 	}
 
+	async didInvokeSaveWithoutFormattingCommand(editor) {
+		this.ignoredEditors.add(editor)
+		editor.save().finally(() => this.ignoredEditors.delete(editor))
+	}
+
 	async formatEditor(editor, isSaving, selectionOnly) {
+		if (this.ignoredEditors.has(editor)) return
+
 		try {
 			const ready = await this.formatter.isReady
 			if (!ready) return
