@@ -50,8 +50,11 @@ class PrettierExtension {
 		this.formatter = new Formatter(this.modulePath)
 
 		try {
-			const path = await findPrettier()
-			this.formatter.start(path)
+			await this.startFormatter().catch(() =>
+				new Promise((resolve) => setTimeout(resolve, 1000)).then(() =>
+					this.startFormatter()
+				)
+			)
 		} catch (err) {
 			if (err.status !== 127) throw err
 
@@ -61,6 +64,11 @@ class PrettierExtension {
 				`Prettier couldn't be found because npm isn't available. Please make sure you have Node installed. If you've only installed Node through NVM, you'll need to change your shell configuration to work with Nova. See https://library.panic.com/nova/environment-variables/`
 			)
 		}
+	}
+
+	async startFormatter(e) {
+		const path = await findPrettier()
+		this.formatter.start(path)
 	}
 
 	toggleFormatOnSave() {
