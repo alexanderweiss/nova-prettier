@@ -1,9 +1,21 @@
+## 2.2.0 - 2021-02-04
+
+### Added
+
+- Added `Save Without Formatting` command
+
+### Changed
+
+- Loading Prettier may be retried once after a small delay instead of immediately showing an error
+- Updated bundled Prettier to 2.2.1
+- Updated bundled Prettier PHP plugin to 0.16.1
+
 ## 2.1.0 - 2020-11-25
 
 ### Changed
 
-- Updated bundled Prettier PHP plugin to 0.16.0.
-- Updated bundled Prettier to 2.2.0.
+- Updated bundled Prettier PHP plugin to 0.16.0
+- Updated bundled Prettier to 2.2.0
 
 ### Fixed
 

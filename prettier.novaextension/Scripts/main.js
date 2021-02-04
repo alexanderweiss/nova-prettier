@@ -1370,10 +1370,6 @@ const { Formatter: Formatter$1 } = formatter;
 
 class PrettierExtension {
 	constructor(modulePath, prettier, parsers) {
-		this.modulePath = modulePath;
-		this.prettier = prettier;
-		this.parsers = parsers;
-
 		this.didAddTextEditor = this.didAddTextEditor.bind(this);
 		this.toggleFormatOnSave = this.toggleFormatOnSave.bind(this);
 		this.editorWillSave = this.editorWillSave.bind(this);
@@ -1381,8 +1377,16 @@ class PrettierExtension {
 		this.didInvokeFormatSelectionCommand = this.didInvokeFormatSelectionCommand.bind(
 			this
 		);
+		this.didInvokeSaveWithoutFormattingCommand = this.didInvokeSaveWithoutFormattingCommand.bind(
+			this
+		);
+
+		this.modulePath = modulePath;
+		this.prettier = prettier;
+		this.parsers = parsers;
 
 		this.saveListeners = new Map();
+		this.ignoredEditors = new Set();
 		this.issueCollection = new IssueCollection();
 	}
 
@@ -1404,12 +1408,19 @@ class PrettierExtension {
 			'prettier.format-selection',
 			this.didInvokeFormatSelectionCommand
 		);
+		nova.commands.register(
+			'prettier.save-without-formatting',
+			this.didInvokeSaveWithoutFormattingCommand
+		);
 
 		this.formatter = new Formatter$1(this.modulePath);
 
 		try {
-			const path = await prettierInstallation();
-			this.formatter.start(path);
+			await this.startFormatter().catch(() =>
+				new Promise((resolve) => setTimeout(resolve, 1000)).then(() =>
+					this.startFormatter()
+				)
+			);
 		} catch (err) {
 			if (err.status !== 127) throw err
 
@@ -1419,6 +1430,11 @@ class PrettierExtension {
 				`Prettier couldn't be found because npm isn't available. Please make sure you have Node installed. If you've only installed Node through NVM, you'll need to change your shell configuration to work with Nova. See https://library.panic.com/nova/environment-variables/`
 			)
 		}
+	}
+
+	async startFormatter(e) {
+		const path = await prettierInstallation();
+		this.formatter.start(path);
 	}
 
 	toggleFormatOnSave() {
@@ -1451,7 +1467,14 @@ class PrettierExtension {
 		await this.formatEditor(editor, false, true);
 	}
 
+	async didInvokeSaveWithoutFormattingCommand(editor) {
+		this.ignoredEditors.add(editor);
+		editor.save().finally(() => this.ignoredEditors.delete(editor));
+	}
+
 	async formatEditor(editor, isSaving, selectionOnly) {
+		if (this.ignoredEditors.has(editor)) return
+
 		try {
 			const ready = await this.formatter.isReady;
 			if (!ready) return
