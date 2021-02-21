@@ -1,3 +1,9 @@
+## 2.2.1 - 2021-02-21
+
+### Changed
+
+- Use Nova's new built-in way of keeping the cursor position/selection after formatting
+
 ## 2.2.0 - 2021-02-04
 
 ### Added
