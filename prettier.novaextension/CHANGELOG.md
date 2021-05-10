@@ -1,3 +1,9 @@
+## 2.2.2 - 2021-05-10
+
+### Changed
+
+- Revert to keeping cursor position in the extension
+
 ## 2.2.1 - 2021-02-21
 
 ### Changed
