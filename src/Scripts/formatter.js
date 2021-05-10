@@ -38,6 +38,9 @@ const PRETTIER_OPTIONS = [
 class Formatter {
 	constructor() {
 		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this)
+		this.prettierServiceStartDidFail = this.prettierServiceStartDidFail.bind(
+			this
+		)
 
 		this.emitter = new Emitter()
 
@@ -87,6 +90,10 @@ class Formatter {
 		this.prettierService.onNotify('didStart', () => {
 			this._resolveIsReadyPromise(true)
 		})
+		this.prettierService.onNotify(
+			'startDidFail',
+			this.prettierServiceStartDidFail
+		)
 		this.prettierService.start()
 	}
 
@@ -125,6 +132,27 @@ class Formatter {
 		setTimeout(() => (this.prettierServiceCrashedRecently = false), 5000)
 
 		this.start()
+	}
+
+	prettierServiceStartDidFail(error) {
+		this._resolveIsReadyPromise(false)
+
+		showActionableError(
+			'prettier-not-running',
+			`Couldn't load Prettier`,
+			`Prettier could not be found. Did you set an invalid 'Prettier module' path in the extension or project settings?`,
+			['Project settings', 'Extension settings'],
+			(r) => {
+				switch (r) {
+					case 0:
+						nova.workspace.openConfig()
+						break
+					case 1:
+						nova.openConfig()
+						break
+				}
+			}
+		)
 	}
 
 	showServiceNotRunningError() {

@@ -5,10 +5,19 @@ class PrettierService {
 		this.format = this.format.bind(this)
 		this.hasConfig = this.hasConfig.bind(this)
 
-		const [, , prettierPath] = process.argv
-		this.prettier = require(prettierPath)
-
 		this.jsonRpc = new JsonRpcService(process.stdin, process.stdout)
+
+		const [, , prettierPath] = process.argv
+		try {
+			this.prettier = require(prettierPath)
+		} catch (err) {
+			this.jsonRpc.notify('startDidFail', { reason: 'moduleNotLoaded' })
+		}
+
+		if (!this.prettier.getFileInfo || !this.prettier.format || !this.prettier.resolveConfig) {
+			this.jsonRpc.notify('startDidFail', { reason: 'moduleNotPrettier' })
+		}
+
 		this.jsonRpc.onRequest('format', this.format)
 		this.jsonRpc.onRequest('hasConfig', this.hasConfig)
 		this.jsonRpc.notify('didStart')

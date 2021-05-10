@@ -35,6 +35,19 @@ function getConfigWithWorkspaceOverride(name) {
 	return workspaceConfig === null ? extensionConfig : workspaceConfig
 }
 
+function observeConfigWithWorkspaceOverride(name, fn) {
+	let ignored = false
+	function wrapped(...args) {
+		if (!ignored) {
+			ignored = true
+			return
+		}
+		fn.apply(this, args)
+	}
+	nova.workspace.config.observe(name, wrapped)
+	nova.config.observe(name, wrapped)
+}
+
 function getWorkspaceConfig(name) {
 	const value = nova.workspace.config.get(name)
 	switch (value) {
@@ -82,6 +95,7 @@ module.exports = {
 	showActionableError,
 	log,
 	getConfigWithWorkspaceOverride,
+	observeConfigWithWorkspaceOverride,
 	ProcessError,
 	handleProcessResult,
 }

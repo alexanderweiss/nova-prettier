@@ -1,11 +1,16 @@
 const findPrettier = require('./prettier-installation.js')
-const { showError, getConfigWithWorkspaceOverride } = require('./helpers.js')
+const {
+	showError,
+	getConfigWithWorkspaceOverride,
+	observeConfigWithWorkspaceOverride,
+} = require('./helpers.js')
 const { Formatter } = require('./formatter.js')
 
 class PrettierExtension {
-	constructor(modulePath, prettier, parsers) {
+	constructor() {
 		this.didAddTextEditor = this.didAddTextEditor.bind(this)
 		this.toggleFormatOnSave = this.toggleFormatOnSave.bind(this)
+		this.modulePathDidChange = this.modulePathDidChange.bind(this)
 		this.editorWillSave = this.editorWillSave.bind(this)
 		this.didInvokeFormatCommand = this.didInvokeFormatCommand.bind(this)
 		this.didInvokeFormatSelectionCommand = this.didInvokeFormatSelectionCommand.bind(
@@ -15,10 +20,6 @@ class PrettierExtension {
 			this
 		)
 
-		this.modulePath = modulePath
-		this.prettier = prettier
-		this.parsers = parsers
-
 		this.saveListeners = new Map()
 		this.ignoredEditors = new Set()
 		this.issueCollection = new IssueCollection()
@@ -27,15 +28,20 @@ class PrettierExtension {
 	setupConfiguration() {
 		nova.config.remove('prettier.use-compatibility-mode')
 
-		nova.workspace.config.observe(
+		observeConfigWithWorkspaceOverride(
 			'prettier.format-on-save',
 			this.toggleFormatOnSave
 		)
-		nova.config.observe('prettier.format-on-save', this.toggleFormatOnSave)
+		observeConfigWithWorkspaceOverride(
+			'prettier.module.path',
+			this.modulePathDidChange
+		)
 	}
 
-	async start() {
+	start() {
 		this.setupConfiguration()
+		this.formatter = new Formatter()
+
 		nova.workspace.onDidAddTextEditor(this.didAddTextEditor)
 		nova.commands.register('prettier.format', this.didInvokeFormatCommand)
 		nova.commands.register(
@@ -46,15 +52,21 @@ class PrettierExtension {
 			'prettier.save-without-formatting',
 			this.didInvokeSaveWithoutFormattingCommand
 		)
+	}
 
-		this.formatter = new Formatter(this.modulePath)
+	async startFormatter() {
+		const path =
+			getConfigWithWorkspaceOverride('prettier.module.path') ||
+			(await findPrettier())
 
 		try {
-			await this.startFormatter().catch(() =>
-				new Promise((resolve) => setTimeout(resolve, 1000)).then(() =>
-					this.startFormatter()
+			await this.formatter
+				.start(path)
+				.catch(() =>
+					new Promise((resolve) => setTimeout(resolve, 1000)).then(() =>
+						this.formatter.start(path)
+					)
 				)
-			)
 		} catch (err) {
 			if (err.status !== 127) throw err
 
@@ -66,11 +78,6 @@ class PrettierExtension {
 		}
 	}
 
-	async startFormatter(e) {
-		const path = await findPrettier()
-		this.formatter.start(path)
-	}
-
 	toggleFormatOnSave() {
 		this.enabled = getConfigWithWorkspaceOverride('prettier.format-on-save')
 
@@ -79,6 +86,20 @@ class PrettierExtension {
 		} else {
 			this.saveListeners.forEach((listener) => listener.dispose())
 			this.saveListeners.clear()
+		}
+	}
+
+	modulePathDidChange() {
+		try {
+			this.startFormatter()
+		} catch (err) {
+			console.error('Unable to set up prettier service', err, err.stack)
+
+			return showError(
+				'prettier-resolution-error',
+				`Unable to start Prettier`,
+				`Please check the extension console for additional logs.`
+			)
 		}
 	}
 
@@ -133,7 +154,7 @@ class PrettierExtension {
 exports.activate = async function () {
 	try {
 		const extension = new PrettierExtension()
-		await extension.start()
+		extension.start()
 	} catch (err) {
 		console.error('Unable to set up prettier service', err, err.stack)
 

@@ -149,8 +149,8 @@ class JsonRpcService {
 		});
 	}
 
-	notify(method) {
-		this.write({ method });
+	notify(method, params) {
+		this.write({ method, params });
 	}
 
 	write(data) {

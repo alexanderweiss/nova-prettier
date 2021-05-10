@@ -32,6 +32,28 @@
 	},
 	"config": [
 		{
+			"key": "prettier.general.section",
+			"title": "General",
+			"type": "section",
+			"children": [
+				{
+					"key": "prettier.module.path",
+					"title": "Prettier module",
+					"description": "Prettier module folder. If none is specified, it defaults to the Prettier installed in the project or, if there is none, the version embedded in the extension. Can be overridden in project settings.",
+					"type": "path",
+					"allowFiles": false,
+					"allowFolders": true,
+					"default": true
+				},
+				{
+					"key": "prettier.debug.logging",
+					"title": "Log debug information to Extension Console",
+					"type": "boolean",
+					"default": true
+				}
+			]
+		},
+		{
 			"key": "prettier.default-config.section",
 			"title": "Default Prettier configuration",
 			"description": "Used for remote files or if no Prettier configuration file exists. Can be overridden in project settings.",
@@ -186,6 +208,7 @@
 		{
 			"key": "prettier.format-on-save.section",
 			"title": "Format on save",
+			"description": "Can be overridden in project settings (except for ignored syntaxes).",
 			"type": "section",
 			"children": [
 				{
@@ -302,22 +325,25 @@
 					]
 				}
 			]
-		},
-		{
-			"key": "prettier.other.section",
-			"title": "Other",
-			"type": "section",
-			"children": [
-				{
-					"key": "prettier.debug.logging",
-					"title": "Log debug information to Extension Console",
-					"type": "boolean",
-					"default": true
-				}
-			]
 		}
 	],
 	"config-workspace": [
+		{
+			"key": "prettier.general.section",
+			"title": "General",
+			"type": "section",
+			"children": [
+				{
+					"key": "prettier.module.path",
+					"title": "Prettier module",
+					"description": "Prettier module folder. If none is specified, it defaults to the Prettier installed in the project or, if there is none, the version embedded in the extension. Can be overridden in project settings.",
+					"type": "path",
+					"allowFiles": false,
+					"allowFolders": true,
+					"default": true
+				}
+			]
+		},
 		{
 			"key": "prettier.default-config.section",
 			"title": "Default Prettier configuration",
