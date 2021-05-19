@@ -20,6 +20,12 @@ You can also use Prettier's [built-in exclusion](https://prettier.io/docs/en/ign
 
 Just install the Prettier version you want (1.15.0 or higher) in the root folder of your project. If you already have it open in Nova you'll need to reopen your project after installing or updating Prettier for the extension to start the new one.
 
+You can also explicitly pick an installation of Prettier (or [`prettier-eslint`](https://github.com/prettier/prettier-eslint)) by setting the `Prettier module` path in either the extension or project settings.
+
+## Using Prettier forks or prettier-eslint
+
+You should be able to use any fork of Prettier that uses the same API, as well as [`prettier-eslint`](https://github.com/prettier/prettier-eslint) by explicitly setting the `Prettier module` path in either the extension or project settings.
+
 ## Working with remote files
 
 Most features are supported for remote files. However [Prettier configuration](https://prettier.io/docs/en/configuration.html) and [.prettierignore](https://prettier.io/docs/en/ignore.html) files are not. The default configuration set in the extension or project preferences will be used instead.
