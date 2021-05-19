@@ -100,6 +100,7 @@ class Formatter {
 	stop() {
 		nova.notifications.cancel('prettier-not-running')
 		if (!this._isReadyPromise) return
+		if (!this.prettierService) return
 
 		log.info('Stopping Prettier service')
 
@@ -134,13 +135,13 @@ class Formatter {
 		this.start()
 	}
 
-	prettierServiceStartDidFail(error) {
+	prettierServiceStartDidFail({ parameters: error }) {
 		this._resolveIsReadyPromise(false)
 
 		showActionableError(
 			'prettier-not-running',
 			`Couldn't load Prettier`,
-			`Prettier could not be found. Did you set an invalid 'Prettier module' path in the extension or project settings?`,
+			`Is your Node up to date? Or did you set an invalid 'Prettier module' path in the extension or project settings? A detailed log of the error is available in the extension console.`,
 			['Project settings', 'Extension settings'],
 			(r) => {
 				switch (r) {
@@ -153,6 +154,8 @@ class Formatter {
 				}
 			}
 		)
+
+		console.error(`${error.name}: ${error.message}\n${error.stack}`)
 	}
 
 	showServiceNotRunningError() {

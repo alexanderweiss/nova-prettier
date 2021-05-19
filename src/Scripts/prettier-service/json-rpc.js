@@ -124,16 +124,27 @@ class JsonRpcService {
 			process.exit(MISSING_ID_EXIT_CODE)
 		}
 
-		try {
-			const handler = this.requestHandlers.get(request.method)
-			if (!handler) {
-				return this.sendError(request.id, -32601, 'Method not found')
-			}
+		const handler = this.requestHandlers.get(request.method)
+		if (!handler) {
+			return this.sendError(request.id, -32601, 'Method not found')
+		}
 
+		try {
 			const result = await handler(request.params)
 			this.write({ result, id: request.id })
 		} catch (err) {
-			this.sendError(request.id, -32603, err.message)
+			if (typeof err === 'string') return { error: { message: err } }
+
+			this.write({
+				id: request.id,
+				result: {
+					error: {
+						name: err.name,
+						message: err.message,
+						stack: err.stack,
+					},
+				},
+			})
 		}
 	}
 
