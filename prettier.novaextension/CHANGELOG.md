@@ -1,3 +1,14 @@
+## 2.3.0 - 2020-05-19
+
+### Added
+
+- Added global and project settings to override the Prettier module path
+- Added (experimental) support for `prettier-eslint`
+
+### Changed
+
+- Errors occurring while loading the Prettier module will now be logged with message and stack trace
+
 ## 2.2.2 - 2021-05-10
 
 ### Changed

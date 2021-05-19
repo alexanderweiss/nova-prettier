@@ -2,23 +2,12 @@
 
 const JsonRpcService = require('./json-rpc.js');
 
-class PrettierService {
-	constructor() {
+class FormattingService {
+	constructor(jsonRpc) {
 		this.format = this.format.bind(this);
 		this.hasConfig = this.hasConfig.bind(this);
 
-		this.jsonRpc = new JsonRpcService(process.stdin, process.stdout);
-
-		const [, , prettierPath] = process.argv;
-		try {
-			this.prettier = require(prettierPath);
-		} catch (err) {
-			this.jsonRpc.notify('startDidFail', { reason: 'moduleNotLoaded' });
-		}
-
-		if (!this.prettier.getFileInfo || !this.prettier.format || !this.prettier.resolveConfig) {
-			this.jsonRpc.notify('startDidFail', { reason: 'moduleNotPrettier' });
-		}
+		this.jsonRpc = jsonRpc;
 
 		this.jsonRpc.onRequest('format', this.format);
 		this.jsonRpc.onRequest('hasConfig', this.hasConfig);
@@ -26,31 +15,47 @@ class PrettierService {
 	}
 
 	async format({ original, pathForConfig, ignorePath, options }) {
-		try {
-			const { ignored, parser, config } = await this.getConfig({
-				pathForConfig,
-				ignorePath,
-				options,
-			});
-
-			if (ignored) return { ignored: true }
-			if (!parser) return { missingParser: true }
-
-			const formatted = this.prettier.format(original, config);
-
-			return { formatted }
-		} catch (err) {
-			return this.buildErrorResult(err)
-		}
+		throw new Error('Implementation missing')
 	}
 
 	async hasConfig({ pathForConfig }) {
-		try {
-			const config = await this.prettier.resolveConfig(pathForConfig);
-			return config !== null
-		} catch (err) {
-			return this.buildErrorResult(err)
-		}
+		throw new Error('Implementation missing')
+	}
+}
+
+class PrettierService extends FormattingService {
+	static isCorrectModule(module) {
+		return (
+			typeof module.format === 'function' &&
+			typeof module.getFileInfo === 'function' &&
+			typeof module.resolveConfig === 'function'
+		)
+	}
+
+	constructor(jsonRpc, prettier) {
+		super(jsonRpc);
+
+		this.prettier = prettier;
+	}
+
+	async format({ original, pathForConfig, ignorePath, options }) {
+		const { ignored, parser, config } = await this.getConfig({
+			pathForConfig,
+			ignorePath,
+			options,
+		});
+
+		if (ignored) return { ignored: true }
+		if (!parser) return { missingParser: true }
+
+		const formatted = this.prettier.format(original, config);
+
+		return { formatted }
+	}
+
+	async hasConfig({ pathForConfig }) {
+		const config = await this.prettier.resolveConfig(pathForConfig);
+		return config !== null
 	}
 
 	async getConfig({ pathForConfig, ignorePath, options }) {
@@ -76,21 +81,54 @@ class PrettierService {
 			config,
 		}
 	}
+}
 
-	buildErrorResult(err) {
-		// Return error as object; JSON-RPC errors don't work well.
+class PrettierEslintService extends FormattingService {
+	static isCorrectModule(module) {
+		return typeof module === 'function'
+	}
 
-		// Some plugins don't return error objects but strings.
-		if (typeof err === 'string') return { error: { message: err } }
+	constructor(jsonRpc, format) {
+		super(jsonRpc);
 
-		return {
-			error: {
-				name: err.name,
-				message: err.message,
-				stack: err.stack,
-			},
-		}
+		this.format = format;
+	}
+
+	async format({ original, pathForConfig, ignorePath, options }) {
+		const formatted = this.format({
+			text: original,
+			fallbackPrettierOptions: options,
+		});
+		return { formatted }
+	}
+
+	async hasConfig({ pathForConfig }) {
+		return false
 	}
 }
 
-const server = new PrettierService();
+const jsonRpcService = new JsonRpcService(process.stdin, process.stdout);
+const [, , modulePath] = process.argv;
+
+try {
+	const module = require(modulePath);
+	if (
+		modulePath.includes('prettier-eslint') &&
+		PrettierEslintService.isCorrectModule(module)
+	) {
+		new PrettierEslintService(jsonRpcService, module);
+	} else if (PrettierService.isCorrectModule(module)) {
+		new PrettierService(jsonRpcService, module);
+	} else {
+		throw new Error(
+			`Module at ${modulePath} does not appear to be prettier or prettier-eslint`
+		)
+	}
+} catch (err) {
+	jsonRpcService.notify('startDidFail', {
+		name: err.name,
+		message: err.message,
+		stack: err.stack,
+	});
+	process.exit();
+}

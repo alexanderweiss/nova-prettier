@@ -1062,6 +1062,7 @@ class Formatter {
 	stop() {
 		nova.notifications.cancel('prettier-not-running');
 		if (!this._isReadyPromise) return
+		if (!this.prettierService) return
 
 		log$2.info('Stopping Prettier service');
 
@@ -1096,13 +1097,13 @@ class Formatter {
 		this.start();
 	}
 
-	prettierServiceStartDidFail(error) {
+	prettierServiceStartDidFail({ parameters: error }) {
 		this._resolveIsReadyPromise(false);
 
 		showActionableError$1(
 			'prettier-not-running',
 			`Couldn't load Prettier`,
-			`Prettier could not be found. Did you set an invalid 'Prettier module' path in the extension or project settings?`,
+			`Is your Node up to date? Or did you set an invalid 'Prettier module' path in the extension or project settings? A detailed log of the error is available in the extension console.`,
 			['Project settings', 'Extension settings'],
 			(r) => {
 				switch (r) {
@@ -1115,6 +1116,8 @@ class Formatter {
 				}
 			}
 		);
+
+		console.error(`${error.name}: ${error.message}\n${error.stack}`);
 	}
 
 	showServiceNotRunningError() {
@@ -1411,6 +1414,7 @@ const {
 	showError: showError$2,
 	getConfigWithWorkspaceOverride: getConfigWithWorkspaceOverride$2,
 	observeConfigWithWorkspaceOverride: observeConfigWithWorkspaceOverride$1,
+	log: log$3,
 } = helpers;
 const { Formatter: Formatter$1 } = formatter;
 
@@ -1431,6 +1435,8 @@ class PrettierExtension {
 		this.saveListeners = new Map();
 		this.ignoredEditors = new Set();
 		this.issueCollection = new IssueCollection();
+
+		this.formatter = new Formatter$1();
 	}
 
 	setupConfiguration() {
@@ -1448,7 +1454,6 @@ class PrettierExtension {
 
 	start() {
 		this.setupConfiguration();
-		this.formatter = new Formatter$1();
 
 		nova.workspace.onDidAddTextEditor(this.didAddTextEditor);
 		nova.commands.register('prettier.format', this.didInvokeFormatCommand);
@@ -1467,23 +1472,14 @@ class PrettierExtension {
 			getConfigWithWorkspaceOverride$2('prettier.module.path') ||
 			(await prettierInstallation());
 
-		try {
-			await this.formatter
-				.start(path)
-				.catch(() =>
-					new Promise((resolve) => setTimeout(resolve, 1000)).then(() =>
-						this.formatter.start(path)
-					)
-				);
-		} catch (err) {
-			if (err.status !== 127) throw err
-
-			return showError$2(
-				'prettier-resolution-error',
-				`Can't find npm and Prettier`,
-				`Prettier couldn't be found because npm isn't available. Please make sure you have Node installed. If you've only installed Node through NVM, you'll need to change your shell configuration to work with Nova. See https://library.panic.com/nova/environment-variables/`
-			)
-		}
+		log$3.info(`Loading prettier at ${path}`);
+		await this.formatter
+			.start(path)
+			.catch(() =>
+				new Promise((resolve) => setTimeout(resolve, 1000)).then(() =>
+					this.formatter.start(path)
+				)
+			);
 	}
 
 	toggleFormatOnSave() {
@@ -1497,11 +1493,20 @@ class PrettierExtension {
 		}
 	}
 
-	modulePathDidChange() {
+	async modulePathDidChange() {
 		try {
-			this.startFormatter();
+			this.formatter.stop();
+			await this.startFormatter();
 		} catch (err) {
-			console.error('Unable to set up prettier service', err, err.stack);
+			if (err.status === 127) {
+				return showError$2(
+					'prettier-resolution-error',
+					`Can't find npm and Prettier`,
+					`Prettier couldn't be found because npm isn't available. Please make sure you have Node installed. If you've only installed Node through NVM, you'll need to change your shell configuration to work with Nova. See https://library.panic.com/nova/environment-variables/`
+				)
+			}
+
+			console.error('Unable to start prettier service', err, err.stack);
 
 			return showError$2(
 				'prettier-resolution-error',
