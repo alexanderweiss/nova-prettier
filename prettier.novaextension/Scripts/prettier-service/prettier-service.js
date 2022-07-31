@@ -38,7 +38,21 @@ class PrettierService extends FormattingService {
 		this.prettier = prettier;
 	}
 
-	async format({ original, pathForConfig, ignorePath, options }) {
+	resolvePluginPaths = (plugins, workspacePath) => {
+		const nodeModulesDirectory = `${workspacePath}/node_modules`;
+		const resolved = plugins.map(
+			(plugin) => `${nodeModulesDirectory}/${plugin}`
+		);
+		return resolved
+	}
+
+	async format({
+		original,
+		pathForConfig,
+		ignorePath,
+		options,
+		workspacePath,
+	}) {
 		const { ignored, parser, config } = await this.getConfig({
 			pathForConfig,
 			ignorePath,
@@ -47,6 +61,16 @@ class PrettierService extends FormattingService {
 
 		if (ignored) return { ignored: true }
 		if (!parser) return { missingParser: true }
+
+		if (Object.keys(config).includes('plugins')) {
+			const plugins = this.resolvePluginPaths(config.plugins, workspacePath);
+			//clone config and delete plugins
+			const configClone = { ...config };
+			delete configClone.plugins;
+			const resolvedConfig = { ...configClone, plugins };
+			const formatted = this.prettier.format(original, resolvedConfig);
+			return { formatted }
+		}
 
 		const formatted = this.prettier.format(original, config);
 

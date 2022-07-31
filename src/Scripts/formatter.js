@@ -38,9 +38,8 @@ const PRETTIER_OPTIONS = [
 class Formatter {
 	constructor() {
 		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this)
-		this.prettierServiceStartDidFail = this.prettierServiceStartDidFail.bind(
-			this
-		)
+		this.prettierServiceStartDidFail =
+			this.prettierServiceStartDidFail.bind(this)
 
 		this.emitter = new Emitter()
 
@@ -211,6 +210,7 @@ class Formatter {
 			pathForConfig,
 			ignorePath: saving && this.getIgnorePath(pathForConfig),
 			options,
+			workspacePath: nova.workspace.path,
 		})
 
 		const { formatted, error, ignored, missingParser } = result

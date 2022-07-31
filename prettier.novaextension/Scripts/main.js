@@ -9,7 +9,7 @@ class ProcessError extends Error {
 	}
 }
 
-function showError(id, title, body) {
+function showError$2(id, title, body) {
 	let request = new NotificationRequest(id);
 
 	request.title = nova.localize(title);
@@ -19,7 +19,7 @@ function showError(id, title, body) {
 	nova.notifications.add(request).catch((err) => console.error(err, err.stack));
 }
 
-function showActionableError(id, title, body, actions, callback) {
+function showActionableError$1(id, title, body, actions, callback) {
 	let request = new NotificationRequest(id);
 
 	request.title = nova.localize(title);
@@ -32,14 +32,14 @@ function showActionableError(id, title, body, actions, callback) {
 		.catch((err) => console.error(err, err.stack));
 }
 
-function getConfigWithWorkspaceOverride(name) {
+function getConfigWithWorkspaceOverride$2(name) {
 	const workspaceConfig = getWorkspaceConfig(name);
 	const extensionConfig = nova.config.get(name);
 
 	return workspaceConfig === null ? extensionConfig : workspaceConfig
 }
 
-function observeConfigWithWorkspaceOverride(name, fn) {
+function observeConfigWithWorkspaceOverride$1(name, fn) {
 	let ignored = false;
 	function wrapped(...args) {
 		if (!ignored) {
@@ -66,7 +66,7 @@ function getWorkspaceConfig(name) {
 	}
 }
 
-function handleProcessResult(process, reject, resolve) {
+function handleProcessResult$1(process, reject, resolve) {
 	const errors = [];
 	process.onStderr((err) => {
 		errors.push(err);
@@ -82,7 +82,7 @@ function handleProcessResult(process, reject, resolve) {
 	});
 }
 
-const log = Object.fromEntries(
+const log$3 = Object.fromEntries(
 	['log', 'info', 'warn'].map((fn) => [
 		fn,
 		(...args) => {
@@ -95,16 +95,16 @@ const log = Object.fromEntries(
 );
 
 var helpers = {
-	showError,
-	showActionableError,
-	log,
-	getConfigWithWorkspaceOverride,
-	observeConfigWithWorkspaceOverride,
+	showError: showError$2,
+	showActionableError: showActionableError$1,
+	log: log$3,
+	getConfigWithWorkspaceOverride: getConfigWithWorkspaceOverride$2,
+	observeConfigWithWorkspaceOverride: observeConfigWithWorkspaceOverride$1,
 	ProcessError,
-	handleProcessResult,
+	handleProcessResult: handleProcessResult$1,
 };
 
-const { handleProcessResult: handleProcessResult$1, log: log$1 } = helpers;
+const { handleProcessResult, log: log$2 } = helpers;
 
 async function findPrettier(directory) {
 	let resolve, reject;
@@ -124,7 +124,7 @@ async function findPrettier(directory) {
 		const [path, name, status, extra] = result.trim().split(':');
 		if (!name || !name.startsWith('prettier@')) return resolve(null)
 		if (path === nova.workspace.path) {
-			log$1.info(
+			log$2.info(
 				`You seem to be working on Prettier! The extension doesn't work without Prettier built, so using the built-in Prettier instead.`
 			);
 			return resolve(null)
@@ -136,7 +136,7 @@ async function findPrettier(directory) {
 		});
 	});
 
-	handleProcessResult$1(process, reject, resolve);
+	handleProcessResult(process, reject, resolve);
 	process.start();
 
 	return promise
@@ -154,7 +154,7 @@ async function installPrettier(directory) {
 		cwd: directory,
 	});
 
-	handleProcessResult$1(process, reject, resolve);
+	handleProcessResult(process, reject, resolve);
 	process.start();
 
 	return promise
@@ -166,13 +166,13 @@ var prettierInstallation = async function () {
 		if (nova.workspace.path) {
 			const resolved = await findPrettier(nova.workspace.path);
 			if (resolved) {
-				log$1.info(`Loading project prettier at ${resolved.path}`);
+				log$2.info(`Loading project prettier at ${resolved.path}`);
 				return resolved.path
 			}
 		}
 	} catch (err) {
 		if (err.status === 127) throw err
-		log$1.warn('Error trying to find workspace Prettier', err);
+		log$2.warn('Error trying to find workspace Prettier', err);
 	}
 
 	// Install / update bundled version
@@ -182,15 +182,15 @@ var prettierInstallation = async function () {
 		const resolved = await findPrettier(nova.extension.path);
 
 		if (!resolved || !resolved.correctVersion) {
-			log$1.info(`Installing / updating bundled Prettier at ${path}`);
+			log$2.info(`Installing / updating bundled Prettier at ${path}`);
 			await installPrettier(nova.extension.path);
 		}
 
-		log$1.info(`Loading bundled prettier at ${path}`);
+		log$2.info(`Loading bundled prettier at ${path}`);
 		return path
 	} catch (err) {
 		if (err.status === 127) throw err
-		log$1.warn('Error trying to find or install bundled Prettier', err);
+		log$2.warn('Error trying to find or install bundled Prettier', err);
 	}
 };
 
@@ -963,8 +963,8 @@ var diff_1 = diff;
 
 const {
 	showError: showError$1,
-	showActionableError: showActionableError$1,
-	log: log$2,
+	showActionableError,
+	log: log$1,
 	getConfigWithWorkspaceOverride: getConfigWithWorkspaceOverride$1,
 } = helpers;
 
@@ -997,12 +997,11 @@ const PRETTIER_OPTIONS = [
 	'vueIndentScriptAndStyle',
 ];
 
-class Formatter {
+class Formatter$1 {
 	constructor() {
 		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this);
-		this.prettierServiceStartDidFail = this.prettierServiceStartDidFail.bind(
-			this
-		);
+		this.prettierServiceStartDidFail =
+			this.prettierServiceStartDidFail.bind(this);
 
 		this.emitter = new Emitter();
 
@@ -1031,7 +1030,7 @@ class Formatter {
 		if (modulePath) this.modulePath = modulePath;
 		if (this.prettierService) return
 
-		log$2.info('Starting Prettier service');
+		log$1.info('Starting Prettier service');
 
 		if (!this._isReadyPromise) this.setupIsReadyPromise();
 
@@ -1064,7 +1063,7 @@ class Formatter {
 		if (!this._isReadyPromise) return
 		if (!this.prettierService) return
 
-		log$2.info('Stopping Prettier service');
+		log$1.info('Stopping Prettier service');
 
 		this.prettierService.terminate();
 		if (this._resolveIsReadyPromise) this._resolveIsReadyPromise(false);
@@ -1100,7 +1099,7 @@ class Formatter {
 	prettierServiceStartDidFail({ parameters: error }) {
 		this._resolveIsReadyPromise(false);
 
-		showActionableError$1(
+		showActionableError(
 			'prettier-not-running',
 			`Couldn't load Prettier`,
 			`Is your Node up to date? Or did you set an invalid 'Prettier module' path in the extension or project settings? A detailed log of the error is available in the extension console.`,
@@ -1121,7 +1120,7 @@ class Formatter {
 	}
 
 	showServiceNotRunningError() {
-		showActionableError$1(
+		showActionableError(
 			'prettier-not-running',
 			'Prettier stopped running',
 			`Please report report an issue though Extension Library if this problem persits.`,
@@ -1151,7 +1150,7 @@ class Formatter {
 
 		if (shouldApplyDefaultConfig === null) return []
 
-		log$2.info(`Formatting ${document.path}`);
+		log$1.info(`Formatting ${document.path}`);
 
 		const documentRange = new Range(0, document.length);
 		const original = editor.getTextInRange(documentRange);
@@ -1173,6 +1172,7 @@ class Formatter {
 			pathForConfig,
 			ignorePath: saving && this.getIgnorePath(pathForConfig),
 			options,
+			workspacePath: nova.workspace.path,
 		});
 
 		const { formatted, error, ignored, missingParser } = result;
@@ -1182,7 +1182,7 @@ class Formatter {
 		}
 
 		if (ignored) {
-			log$2.info(`Prettier is configured to ignore ${document.path}`);
+			log$1.info(`Prettier is configured to ignore ${document.path}`);
 			return []
 		}
 
@@ -1194,12 +1194,12 @@ class Formatter {
 					`Prettier doesn't include a Parser for this file and no plugin is installed that does.`
 				);
 			}
-			log$2.info(`No parser for ${document.path}`);
+			log$1.info(`No parser for ${document.path}`);
 			return []
 		}
 
 		if (formatted === original) {
-			log$2.info(`No changes for ${document.path}`);
+			log$1.info(`No changes for ${document.path}`);
 			return []
 		}
 
@@ -1214,7 +1214,7 @@ class Formatter {
 				`prettier.format-on-save.ignored-syntaxes.${document.syntax}`
 			) === true
 		) {
-			log$2.info(
+			log$1.info(
 				`Not formatting (${document.syntax} syntax ignored) ${document.path}`
 			);
 			return null
@@ -1267,7 +1267,7 @@ class Formatter {
 	}
 
 	async applyResult(editor, original, formatted) {
-		log$2.info(`Applying formatted changes to ${editor.document.path}`);
+		log$1.info(`Applying formatted changes to ${editor.document.path}`);
 
 		const [cursor, edits] = this.diff(
 			original,
@@ -1278,7 +1278,7 @@ class Formatter {
 		if (
 			original !== editor.getTextInRange(new Range(0, editor.document.length))
 		) {
-			log$2.info(`Document ${editor.document.path} was changed while formatting`);
+			log$1.info(`Document ${editor.document.path} was changed while formatting`);
 			return
 		}
 
@@ -1407,16 +1407,16 @@ class Formatter {
 }
 
 var formatter = {
-	Formatter,
+	Formatter: Formatter$1,
 };
 
 const {
-	showError: showError$2,
-	getConfigWithWorkspaceOverride: getConfigWithWorkspaceOverride$2,
-	observeConfigWithWorkspaceOverride: observeConfigWithWorkspaceOverride$1,
-	log: log$3,
+	showError,
+	getConfigWithWorkspaceOverride,
+	observeConfigWithWorkspaceOverride,
+	log,
 } = helpers;
-const { Formatter: Formatter$1 } = formatter;
+const { Formatter } = formatter;
 
 class PrettierExtension {
 	constructor() {
@@ -1436,17 +1436,17 @@ class PrettierExtension {
 		this.ignoredEditors = new Set();
 		this.issueCollection = new IssueCollection();
 
-		this.formatter = new Formatter$1();
+		this.formatter = new Formatter();
 	}
 
 	setupConfiguration() {
 		nova.config.remove('prettier.use-compatibility-mode');
 
-		observeConfigWithWorkspaceOverride$1(
+		observeConfigWithWorkspaceOverride(
 			'prettier.format-on-save',
 			this.toggleFormatOnSave
 		);
-		observeConfigWithWorkspaceOverride$1(
+		observeConfigWithWorkspaceOverride(
 			'prettier.module.path',
 			this.modulePathDidChange
 		);
@@ -1469,10 +1469,10 @@ class PrettierExtension {
 
 	async startFormatter() {
 		const path =
-			getConfigWithWorkspaceOverride$2('prettier.module.path') ||
+			getConfigWithWorkspaceOverride('prettier.module.path') ||
 			(await prettierInstallation());
 
-		log$3.info(`Loading prettier at ${path}`);
+		log.info(`Loading prettier at ${path}`);
 		await this.formatter
 			.start(path)
 			.catch(() =>
@@ -1483,7 +1483,7 @@ class PrettierExtension {
 	}
 
 	toggleFormatOnSave() {
-		this.enabled = getConfigWithWorkspaceOverride$2('prettier.format-on-save');
+		this.enabled = getConfigWithWorkspaceOverride('prettier.format-on-save');
 
 		if (this.enabled) {
 			nova.workspace.textEditors.forEach(this.didAddTextEditor);
@@ -1499,7 +1499,7 @@ class PrettierExtension {
 			await this.startFormatter();
 		} catch (err) {
 			if (err.status === 127) {
-				return showError$2(
+				return showError(
 					'prettier-resolution-error',
 					`Can't find npm and Prettier`,
 					`Prettier couldn't be found because npm isn't available. Please make sure you have Node installed. If you've only installed Node through NVM, you'll need to change your shell configuration to work with Nova. See https://library.panic.com/nova/environment-variables/`
@@ -1508,7 +1508,7 @@ class PrettierExtension {
 
 			console.error('Unable to start prettier service', err, err.stack);
 
-			return showError$2(
+			return showError(
 				'prettier-resolution-error',
 				`Unable to start Prettier`,
 				`Please check the extension console for additional logs.`
@@ -1555,7 +1555,7 @@ class PrettierExtension {
 			this.issueCollection.set(editor.document.uri, issues);
 		} catch (err) {
 			console.error(err, err.stack);
-			showError$2(
+			showError(
 				'prettier-format-error',
 				`Error while formatting`,
 				`"${err.message}" occurred while formatting ${editor.document.path}. See the extension console for more info.`
@@ -1571,7 +1571,7 @@ var activate = async function () {
 	} catch (err) {
 		console.error('Unable to set up prettier service', err, err.stack);
 
-		return showError$2(
+		return showError(
 			'prettier-resolution-error',
 			`Unable to start Prettier`,
 			`Please check the extension console for additional logs.`
@@ -1590,4 +1590,4 @@ var main = {
 
 exports.activate = activate;
 exports.deactivate = deactivate;
-exports.default = main;
+exports["default"] = main;
