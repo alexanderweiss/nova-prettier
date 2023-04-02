@@ -275,6 +275,7 @@ class Formatter {
 
 			if (
 				!hasConfig &&
+				saving &&
 				getConfigWithWorkspaceOverride(
 					'prettier.format-on-save.ignore-without-config'
 				)
