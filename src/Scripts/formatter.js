@@ -38,9 +38,8 @@ const PRETTIER_OPTIONS = [
 class Formatter {
 	constructor() {
 		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this)
-		this.prettierServiceStartDidFail = this.prettierServiceStartDidFail.bind(
-			this
-		)
+		this.prettierServiceStartDidFail =
+			this.prettierServiceStartDidFail.bind(this)
 
 		this.emitter = new Emitter()
 

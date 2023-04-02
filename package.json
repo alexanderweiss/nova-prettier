@@ -17,13 +17,12 @@
 	},
 	"homepage": "https://github.com/alexanderweiss/nova-prettier#readme",
 	"dependencies": {
-		"@prettier/plugin-ruby": "^0.20.1",
 		"fast-diff": "^1.2.0",
-		"prettier": "^2.1.2"
+		"prettier": "^2.8.7"
 	},
 	"devDependencies": {
-		"@rollup/plugin-commonjs": "^13.0.2",
-		"@rollup/plugin-node-resolve": "^8.4.0",
-		"rollup": "^2.29.0"
+		"@rollup/plugin-commonjs": "^24.0.1",
+		"@rollup/plugin-node-resolve": "^15.0.1",
+		"rollup": "^2.79.1"
 	}
 }

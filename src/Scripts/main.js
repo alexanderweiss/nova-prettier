@@ -14,12 +14,10 @@ class PrettierExtension {
 		this.modulePathDidChange = this.modulePathDidChange.bind(this)
 		this.editorWillSave = this.editorWillSave.bind(this)
 		this.didInvokeFormatCommand = this.didInvokeFormatCommand.bind(this)
-		this.didInvokeFormatSelectionCommand = this.didInvokeFormatSelectionCommand.bind(
-			this
-		)
-		this.didInvokeSaveWithoutFormattingCommand = this.didInvokeSaveWithoutFormattingCommand.bind(
-			this
-		)
+		this.didInvokeFormatSelectionCommand =
+			this.didInvokeFormatSelectionCommand.bind(this)
+		this.didInvokeSaveWithoutFormattingCommand =
+			this.didInvokeSaveWithoutFormattingCommand.bind(this)
 
 		this.saveListeners = new Map()
 		this.ignoredEditors = new Set()
