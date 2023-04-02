@@ -12,6 +12,8 @@ class PrettierExtension {
 		this.didAddTextEditor = this.didAddTextEditor.bind(this)
 		this.toggleFormatOnSave = this.toggleFormatOnSave.bind(this)
 		this.modulePathDidChange = this.modulePathDidChange.bind(this)
+		this.prettierConfigFileDidChange =
+			this.prettierConfigFileDidChange.bind(this)
 		this.editorWillSave = this.editorWillSave.bind(this)
 		this.didInvokeFormatCommand = this.didInvokeFormatCommand.bind(this)
 		this.didInvokeFormatSelectionCommand =
@@ -42,6 +44,8 @@ class PrettierExtension {
 	start() {
 		this.setupConfiguration()
 
+		nova.fs.watch('**/.prettierrc*', this.prettierConfigFileDidChange)
+		nova.fs.watch('**/package.json', this.prettierConfigFileDidChange)
 		nova.workspace.onDidAddTextEditor(this.didAddTextEditor)
 		nova.commands.register('prettier.format', this.didInvokeFormatCommand)
 		nova.commands.register(
@@ -80,9 +84,14 @@ class PrettierExtension {
 		}
 	}
 
+	async prettierConfigFileDidChange() {
+		await this.formatter.stop()
+		await this.formatter.start()
+	}
+
 	async modulePathDidChange() {
 		try {
-			this.formatter.stop()
+			await this.formatter.stop()
 			await this.startFormatter()
 		} catch (err) {
 			if (err.status === 127) {

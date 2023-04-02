@@ -66,11 +66,15 @@ class Formatter {
 
 	async start(modulePath) {
 		if (modulePath) this.modulePath = modulePath
-		if (this.prettierService) return
-
-		log.info('Starting Prettier service')
 
 		if (!this._isReadyPromise) this.setupIsReadyPromise()
+		// If we're currently stopping we'll wait for that to complete before starting
+		if (this._isStoppedPromise) {
+			await _isStoppedPromise
+		}
+
+		if (this.prettierService) return
+		log.info('Starting Prettier service')
 
 		this.prettierService = new Process('/usr/bin/env', {
 			args: [
@@ -98,15 +102,23 @@ class Formatter {
 
 	stop() {
 		nova.notifications.cancel('prettier-not-running')
-		if (!this._isReadyPromise) return
-		if (!this.prettierService) return
+		if (!this._isReadyPromise || !this.prettierService) return
+		if (this._isStoppedPromise) return
 
 		log.info('Stopping Prettier service')
 
-		this.prettierService.terminate()
+		this._isStoppedPromise = new Promise((resolve) => {
+			this._resolveIsStoppedPromise = resolve
+		})
+
+		// Stop processing things
 		if (this._resolveIsReadyPromise) this._resolveIsReadyPromise(false)
 		this._isReadyPromise = null
+		// Actually terminate
+		this.prettierService.terminate()
 		this.prettierService = null
+
+		return this._isStoppedPromise
 	}
 
 	setupIsReadyPromise() {
@@ -116,6 +128,10 @@ class Formatter {
 	}
 
 	prettierServiceDidExit(exitCode) {
+		if (this._resolveIsStoppedPromise) {
+			this._resolveIsStoppedPromise()
+			this._isStoppedPromise = null
+		}
 		if (!this.prettierService) return
 
 		console.error(`Prettier service exited with code ${exitCode}`)
