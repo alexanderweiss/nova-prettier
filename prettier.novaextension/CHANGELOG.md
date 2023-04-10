@@ -1,4 +1,20 @@
-## 2.3.0 - 2020-05-19
+## 2.4.0 - 2023-04-10
+
+### Added
+
+- Changes to Prettier configuration in `.prettierrc` and `package.json` are now applied automatically
+
+### Changed
+
+- Updated bundled Prettier to 2.8.7
+- Updated bundled Prettier PHP plugin to 0.19.4
+
+### Fixed
+
+- Fixes `Format with Prettier` following format on save `Ignore documents without Prettier configuration file` configuration value
+- Fixes a possible error when restarting the Prettier process
+
+## 2.3.0 - 2021-05-19
 
 ### Added
 
