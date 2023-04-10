@@ -11,7 +11,7 @@
 		"url": "git+https://github.com/alexanderweiss/nova-prettier.git"
 	},
 	"author": "Alexander Weiss",
-	"license": "ISC",
+	"license": "MIT",
 	"bugs": {
 		"url": "https://github.com/alexanderweiss/nova-prettier/issues"
 	},
