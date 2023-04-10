@@ -1,4 +1,4 @@
-const findPrettier = require('./prettier-installation.js')
+const findPrettier = require('./module-resolver.js')
 const {
 	showError,
 	getConfigWithWorkspaceOverride,
