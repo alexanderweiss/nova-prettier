@@ -88,6 +88,7 @@ class Formatter {
 				this.modulePath,
 			],
 			stdio: 'jsonrpc',
+			cwd: nova.workspace.path,
 		})
 		this.prettierService.onDidExit(this.prettierServiceDidExit)
 		this.prettierService.onNotify('didStart', () => {
