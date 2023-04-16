@@ -1,3 +1,14 @@
+## 2.5.0 - 2023-04-16
+
+### Added
+
+- Added support for finding Prettier installed through yarn and pnpm, etc. (only if `node_modules` is used)
+- Look for Prettier installations in the project's parent folder before falling back to the bundled Prettier
+
+### Fixed
+
+- Fixes prettier not being able to find plugins installed in the project folder
+
 ## 2.4.0 - 2023-04-10
 
 ### Added

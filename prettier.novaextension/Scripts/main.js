@@ -108,7 +108,55 @@ var helpers = {
 
 const { handleProcessResult, log: log$2 } = helpers;
 
-async function findPrettier$1(directory) {
+function findPathRecursively(directory, subPath, callback) {
+	while (true) {
+		const path = nova.path.join(directory, subPath);
+		const stats = nova.fs.stat(path);
+		if (stats) {
+			const result = callback(path, stats);
+			if (result) return { directory, path }
+		}
+
+		if (directory === '/') break
+		directory = nova.path.dirname(directory);
+	}
+
+	return null
+}
+
+function findModuleWithFileSystem(directory, module) {
+	// Find the first parent folder with package.json that contains prettier
+	const packageResult = findPathRecursively(
+		directory,
+		'package.json',
+		(path, stats) => {
+			if (!stats.isFile()) return false
+
+			const file = nova.fs.open(path, 'r');
+			try {
+				const json = JSON.parse(file.read());
+				if (
+					(json.dependencies && json.dependencies[module]) ||
+					(json.devDependencies && json.devDependencies[module])
+				) {
+					return true
+				}
+			} catch {}
+		}
+	);
+	if (!packageResult) return null
+
+	// In that folder, or a parent, find node_modules/[module]
+	const moduleResult = findPathRecursively(
+		packageResult.directory,
+		nova.path.join('node_modules', module),
+		(path, stats) => stats.isDirectory() || stats.isSymbolicLink()
+	);
+
+	return moduleResult ? moduleResult.path : null
+}
+
+async function findModuleWithNPM(directory, module) {
 	let resolve, reject;
 	const promise = new Promise((_resolve, _reject) => {
 		resolve = _resolve;
@@ -116,7 +164,7 @@ async function findPrettier$1(directory) {
 	});
 
 	const process = new Process('/usr/bin/env', {
-		args: ['npm', 'ls', 'prettier', '--parseable', '--long', '--depth', '0'],
+		args: ['npm', 'ls', module, '--parseable', '--long', '--depth', '0'],
 		cwd: directory,
 	});
 
@@ -124,10 +172,10 @@ async function findPrettier$1(directory) {
 		if (!result || !result.trim()) return
 
 		const [path, name, status, extra] = result.trim().split(':');
-		if (!name || !name.startsWith('prettier@')) return resolve(null)
+		if (!name || !name.startsWith(`${module}@`)) return resolve(null)
 		if (path === nova.workspace.path) {
 			log$2.info(
-				`You seem to be working on Prettier! The extension doesn't work without Prettier built, so using the built-in Prettier instead.`
+				`You seem to be working on ${module}! The extension doesn't work without ${module} built, so using the built-in ${module} instead.`
 			);
 			return resolve(null)
 		}
@@ -144,7 +192,7 @@ async function findPrettier$1(directory) {
 	return promise
 }
 
-async function installPrettier(directory) {
+async function installPackages(directory) {
 	let resolve, reject;
 	const promise = new Promise((_resolve, _reject) => {
 		resolve = _resolve;
@@ -162,30 +210,50 @@ async function installPrettier(directory) {
 	return promise
 }
 
-var prettierInstallation = async function () {
+var moduleResolver = async function () {
 	// Try finding in the workspace
-	try {
-		if (nova.workspace.path) {
-			const resolved = await findPrettier$1(nova.workspace.path);
-			if (resolved) {
-				log$2.info(`Loading project prettier at ${resolved.path}`);
-				return resolved.path
+	if (nova.workspace.path) {
+		// Try finding purely through file system first
+		try {
+			const fsResult = findModuleWithFileSystem(nova.workspace.path, 'prettier');
+			if (fsResult) {
+				log$2.info(`Loading project prettier (fs) at ${fsResult}`);
+				return fsResult
 			}
+		} catch (err) {
+			log$2.warn(
+				'Error trying to find workspace Prettier using file system',
+				err,
+				err.stack
+			);
 		}
-	} catch (err) {
-		if (err.status === 127) throw err
-		log$2.warn('Error trying to find workspace Prettier', err);
+
+		// Try npm as an alternative
+		try {
+			const npmResult = await findModuleWithNPM(nova.workspace.path, 'prettier');
+			if (npmResult) {
+				log$2.info(`Loading project prettier (npm) at ${npmResult.path}`);
+				return npmResult.path
+			}
+		} catch (err) {
+			if (err.status === 127) throw err
+			log$2.warn(
+				'Error trying to find workspace Prettier using npm',
+				err,
+				err.stack
+			);
+		}
 	}
 
 	// Install / update bundled version
 	try {
 		const path = nova.path.join(nova.extension.path, 'node_modules', 'prettier');
 
-		const resolved = await findPrettier$1(nova.extension.path);
+		const resolved = await findModuleWithNPM(nova.extension.path, 'prettier');
 
 		if (!resolved || !resolved.correctVersion) {
 			log$2.info(`Installing / updating bundled Prettier at ${path}`);
-			await installPrettier(nova.extension.path);
+			await installPackages(nova.extension.path);
 		}
 
 		log$2.info(`Loading bundled prettier at ${path}`);
@@ -1052,6 +1120,7 @@ class Formatter$1 {
 				this.modulePath,
 			],
 			stdio: 'jsonrpc',
+			cwd: nova.workspace.path,
 		});
 		this.prettierService.onDidExit(this.prettierServiceDidExit);
 		this.prettierService.onNotify('didStart', () => {
@@ -1428,7 +1497,7 @@ var formatter = {
 	Formatter: Formatter$1,
 };
 
-const findPrettier = prettierInstallation;
+const findPrettier = moduleResolver;
 const {
 	showError,
 	getConfigWithWorkspaceOverride,
