@@ -1,3 +1,9 @@
+## 2.5.1 - 2023-04-17
+
+### Fixed
+
+- Fixes extension crashing when opening a file outside a workspace, or a remote file
+
 ## 2.5.0 - 2023-04-16
 
 ### Added

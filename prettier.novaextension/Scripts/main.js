@@ -1542,9 +1542,10 @@ class PrettierExtension {
 
 	start() {
 		this.setupConfiguration();
-
-		nova.fs.watch('**/.prettierrc*', this.prettierConfigFileDidChange);
-		nova.fs.watch('**/package.json', this.prettierConfigFileDidChange);
+		if (nova.workspace.path) {
+			nova.fs.watch('**/.prettierrc*', this.prettierConfigFileDidChange);
+			nova.fs.watch('**/package.json', this.prettierConfigFileDidChange);
+		}
 		nova.workspace.onDidAddTextEditor(this.didAddTextEditor);
 		nova.commands.register('prettier.format', this.didInvokeFormatCommand);
 		nova.commands.register(
