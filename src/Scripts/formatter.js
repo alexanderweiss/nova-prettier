@@ -313,8 +313,12 @@ class Formatter {
 			case 'javascript':
 			case 'jsx':
 				return 'babel'
+			case 'tsx':
+				return 'typescript'
 			case 'flow':
 				return 'babel-flow'
+			case 'html+erb':
+				return 'erb'
 			default:
 				return syntax
 		}
