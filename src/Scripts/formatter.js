@@ -210,9 +210,8 @@ class Formatter {
 		const documentRange = new Range(0, document.length)
 		const original = editor.getTextInRange(documentRange)
 		const options = {
-			...(document.path
-				? { filepath: document.path }
-				: { parser: this.getParserForSyntax(document.syntax) }),
+			parser: this.getParserForSyntax(document.syntax),
+			...(document.path ? { filepath: document.path } : {}),
 			...(shouldApplyDefaultConfig ? this.defaultConfig : {}),
 			...(selectionOnly
 				? {
