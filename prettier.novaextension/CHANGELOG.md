@@ -1,3 +1,10 @@
+## 2.6.0 - 2023-05-01
+
+### Added
+
+- Try formatting based on the syntax selected in Nova if Prettier can't determine the parser
+- Add support for formatting unsaved TSX and HTML (ERB) files
+
 ## 2.5.1 - 2023-04-17
 
 ### Fixed

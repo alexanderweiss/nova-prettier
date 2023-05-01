@@ -1242,9 +1242,8 @@ class Formatter$1 {
 		const documentRange = new Range(0, document.length);
 		const original = editor.getTextInRange(documentRange);
 		const options = {
-			...(document.path
-				? { filepath: document.path }
-				: { parser: this.getParserForSyntax(document.syntax) }),
+			parser: this.getParserForSyntax(document.syntax),
+			...(document.path ? { filepath: document.path } : {}),
 			...(shouldApplyDefaultConfig ? this.defaultConfig : {}),
 			...(selectionOnly
 				? {
@@ -1346,8 +1345,12 @@ class Formatter$1 {
 			case 'javascript':
 			case 'jsx':
 				return 'babel'
+			case 'tsx':
+				return 'typescript'
 			case 'flow':
 				return 'babel-flow'
+			case 'html+erb':
+				return 'erb'
 			default:
 				return syntax
 		}

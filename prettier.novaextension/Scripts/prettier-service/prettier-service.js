@@ -39,18 +39,25 @@ class PrettierService extends FormattingService {
 	}
 
 	async format({ original, pathForConfig, ignorePath, options }) {
-		const { ignored, parser, config } = await this.getConfig({
+		const { ignored, config } = await this.getConfig({
 			pathForConfig,
 			ignorePath,
 			options,
 		});
 
 		if (ignored) return { ignored: true }
-		if (!parser) return { missingParser: true }
+		if (!config.parser) return { missingParser: true }
 
-		const formatted = this.prettier.format(original, config);
-
-		return { formatted }
+		try {
+			return { formatted: await this.prettier.format(original, config) }
+		} catch (err) {
+			// When the parser is selected based on Nova's document syntax, it
+			// might not be installed. So we have to deal with this error.
+			if (err.message.includes(`Couldn't resolve parser`)) {
+				return { missingParser: true }
+			}
+			throw err
+		}
 	}
 
 	async hasConfig({ pathForConfig }) {
@@ -74,12 +81,12 @@ class PrettierService extends FormattingService {
 			editorconfig: true,
 		});
 		const config = { ...options, ...inferredConfig };
-
-		return {
-			ignored: false,
-			parser: config.parser || info.inferredParser,
-			config,
+		// Prefer prettier's inferred parser over our 'default' based on Nova syntax
+		if (info.inferredParser) {
+			config.parser = info.inferredParser;
 		}
+
+		return { ignored: false, config }
 	}
 }
 
