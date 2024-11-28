@@ -33,11 +33,11 @@ class PrettierExtension {
 
 		observeConfigWithWorkspaceOverride(
 			'prettier.format-on-save',
-			this.toggleFormatOnSave
+			this.toggleFormatOnSave,
 		)
 		observeConfigWithWorkspaceOverride(
 			'prettier.module.path',
-			this.modulePathDidChange
+			this.modulePathDidChange,
 		)
 	}
 
@@ -51,11 +51,11 @@ class PrettierExtension {
 		nova.commands.register('prettier.format', this.didInvokeFormatCommand)
 		nova.commands.register(
 			'prettier.format-selection',
-			this.didInvokeFormatSelectionCommand
+			this.didInvokeFormatSelectionCommand,
 		)
 		nova.commands.register(
 			'prettier.save-without-formatting',
-			this.didInvokeSaveWithoutFormattingCommand
+			this.didInvokeSaveWithoutFormattingCommand,
 		)
 	}
 
@@ -69,8 +69,8 @@ class PrettierExtension {
 			.start(path)
 			.catch(() =>
 				new Promise((resolve) => setTimeout(resolve, 1000)).then(() =>
-					this.formatter.start(path)
-				)
+					this.formatter.start(path),
+				),
 			)
 	}
 
@@ -99,7 +99,7 @@ class PrettierExtension {
 				return showError(
 					'prettier-resolution-error',
 					`Can't find npm and Prettier`,
-					`Prettier couldn't be found because npm isn't available. Please make sure you have Node installed. If you've only installed Node through NVM, you'll need to change your shell configuration to work with Nova. See https://library.panic.com/nova/environment-variables/`
+					`Prettier couldn't be found because npm isn't available. Please make sure you have Node installed. If you've only installed Node through NVM, you'll need to change your shell configuration to work with Nova. See https://library.panic.com/nova/environment-variables/`,
 				)
 			}
 
@@ -108,7 +108,7 @@ class PrettierExtension {
 			return showError(
 				'prettier-resolution-error',
 				`Unable to start Prettier`,
-				`Please check the extension console for additional logs.`
+				`Please check the extension console for additional logs.`,
 			)
 		}
 	}
@@ -147,7 +147,7 @@ class PrettierExtension {
 			const issues = await this.formatter.formatEditor(
 				editor,
 				isSaving,
-				selectionOnly
+				selectionOnly,
 			)
 			this.issueCollection.set(editor.document.uri, issues)
 		} catch (err) {
@@ -155,7 +155,7 @@ class PrettierExtension {
 			showError(
 				'prettier-format-error',
 				`Error while formatting`,
-				`"${err.message}" occurred while formatting ${editor.document.path}. See the extension console for more info.`
+				`"${err.message}" occurred while formatting ${editor.document.path}. See the extension console for more info.`,
 			)
 		}
 	}
@@ -171,7 +171,7 @@ exports.activate = async function () {
 		return showError(
 			'prettier-resolution-error',
 			`Unable to start Prettier`,
-			`Please check the extension console for additional logs.`
+			`Please check the extension console for additional logs.`,
 		)
 	}
 }
