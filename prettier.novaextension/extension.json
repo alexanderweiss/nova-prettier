@@ -73,7 +73,8 @@
 					"type": "number",
 					"placeholder": "80",
 					"default": 80,
-					"min": 0
+					"min": 0,
+					"required": true
 				},
 				{
 					"key": "prettier.default-config.tabWidth",
@@ -83,7 +84,8 @@
 					"type": "number",
 					"placeholder": "2",
 					"default": 2,
-					"min": 0
+					"min": 0,
+					"required": true
 				},
 				{
 					"key": "prettier.default-config.useTabs",
@@ -268,9 +270,25 @@
 							"key": "prettier.plugins.prettier-plugin-php.phpVersion",
 							"title": "PHP Version",
 							"description": "Allows specifying the PHP version you're using. If you're using PHP 7.1 or later, setting this option will make use of modern language features in the printed output. If you're using PHP lower than 7.0, you'll have to set this option or Prettier will generate incompatible code.",
-							"type": "string",
-							"placeholder": "7.0",
-							"default": "7.0"
+							"type": "enum",
+							"default": "7.0",
+							"values": [
+								"5.0",
+								"5.1",
+								"5.2",
+								"5.3",
+								"5.4",
+								"5.5",
+								"5.6",
+								"7.0",
+								"7.1",
+								"7.2",
+								"7.3",
+								"7.4",
+								"8.0",
+								"8.1",
+								"8.2"
+							]
 						},
 						{
 							"key": "prettier.plugins.prettier-plugin-php.singleQuote",
@@ -461,7 +479,8 @@
 									"type": "number",
 									"placeholder": "50",
 									"default": 50,
-									"min": 0
+									"min": 0,
+									"required": true
 								},
 								{
 									"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.linesBetweenQueries",
@@ -471,7 +490,8 @@
 									"type": "number",
 									"placeholder": "1",
 									"default": 1,
-									"min": 0
+									"min": 0,
+									"required": true
 								},
 								{
 									"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.denseOperators",
@@ -946,9 +966,26 @@
 							"key": "prettier.plugins.prettier-plugin-php.phpVersion",
 							"title": "PHP Version",
 							"description": "Allows specifying the PHP version you're using. If you're using PHP 7.1 or later, setting this option will make use of modern language features in the printed output. If you're using PHP lower than 7.0, you'll have to set this option or Prettier will generate incompatible code.",
-							"type": "string",
-							"placeholder": "Global Setting",
-							"default": null
+							"type": "enum",
+							"default": "Global Setting",
+							"values": [
+								"Global Setting",
+								"5.0",
+								"5.1",
+								"5.2",
+								"5.3",
+								"5.4",
+								"5.5",
+								"5.6",
+								"7.0",
+								"7.1",
+								"7.2",
+								"7.3",
+								"7.4",
+								"8.0",
+								"8.1",
+								"8.2"
+							]
 						},
 						{
 							"key": "prettier.plugins.prettier-plugin-php.singleQuote",
