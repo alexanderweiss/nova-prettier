@@ -4,7 +4,7 @@
 	"organization": "Alexander Weiss",
 	"description": "Integrates Prettier to enhance code formatting capabilities within Nova.",
 	"version": "3.0.0",
-	"categories": ["commands", "formatters", "key-bindings"],
+	"categories": ["commands", "formatters"],
 	"repository": "https://github.com/alexanderweiss/nova-prettier",
 	"bugs": "https://github.com/alexanderweiss/nova-prettier/issues",
 	"entitlements": {
