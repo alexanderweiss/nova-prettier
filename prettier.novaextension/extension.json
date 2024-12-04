@@ -569,6 +569,50 @@
 							]
 						}
 					]
+				},
+				{
+					"key": "prettier.plugins.prettier-plugin-nginx.section",
+					"title": "prettier-plugin-nginx",
+					"description": "Plugin for Prettier that beautifies NGINX configuration files.",
+					"link": "https://github.com/jxddk/prettier-plugin-nginx",
+					"type": "section",
+					"children": [
+						{
+							"key": "prettier.plugins.prettier-plugin-nginx.enabled",
+							"title": "Plugin Enabled",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.plugins.prettier-plugin-nginx.alignDirectives",
+							"title": "Align Directives",
+							"description": "Align directive parameters within a block to the same column.",
+							"type": "boolean",
+							"default": true
+						},
+						{
+							"key": "prettier.plugins.prettier-plugin-nginx.alignUniversally",
+							"title": "Align Universally",
+							"description": "Align all directive parameters within a file to the same column.",
+							"type": "boolean",
+							"default": false
+						},
+						{
+							"key": "prettier.plugins.prettier-plugin-nginx.wrapParameters",
+							"title": "Wrap Parameters",
+							"description": "Wrap parameters to new lines to fit print width.",
+							"type": "boolean",
+							"default": true
+						},
+						{
+							"key": "prettier.plugins.prettier-plugin-xml.continuationIndent",
+							"title": "Continuation Indent",
+							"description": "Additional indentation for wrapped lines.",
+							"type": "number",
+							"default": 2,
+							"min": 0
+						}
+					]
 				}
 			]
 		},
@@ -1280,6 +1324,59 @@
 									"values": ["Global Setting", "table", "column"]
 								}
 							]
+						}
+					]
+				},
+				{
+					"key": "prettier.plugins.prettier-plugin-nginx.section",
+					"title": "prettier-plugin-nginx",
+					"description": "Plugin for Prettier that beautifies NGINX configuration files.",
+					"link": "https://github.com/jxddk/prettier-plugin-nginx",
+					"type": "section",
+					"children": [
+						{
+							"key": "prettier.plugins.prettier-plugin-nginx.enabled",
+							"title": "Plugin Enabled",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Setting", "Enabled", "Disabled"],
+							"default": "Global Setting"
+						},
+						{
+							"key": "prettier.plugins.prettier-plugin-nginx.alignDirectives",
+							"title": "Align Directives",
+							"description": "Align directive parameters within a block to the same column.",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Setting", "Enabled", "Disabled"],
+							"default": "Global Setting"
+						},
+						{
+							"key": "prettier.plugins.prettier-plugin-nginx.alignUniversally",
+							"title": "Align Universally",
+							"description": "Align all directive parameters within a file to the same column.",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Setting", "Enabled", "Disabled"],
+							"default": "Global Setting"
+						},
+						{
+							"key": "prettier.plugins.prettier-plugin-nginx.wrapParameters",
+							"title": "Wrap Parameters",
+							"description": "Wrap parameters to new lines to fit print width.",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Setting", "Enabled", "Disabled"],
+							"default": "Global Setting"
+						},
+						{
+							"key": "prettier.plugins.prettier-plugin-xml.continuationIndent",
+							"title": "Continuation Indent",
+							"description": "Additional indentation for wrapped lines.",
+							"type": "number",
+							"placeholder": "Global Setting",
+							"default": null,
+							"min": 0
 						}
 					]
 				}
