@@ -7,13 +7,24 @@ Experience seamless code formatting with Prettier directly in Nova.
 - **Configuration Support:** Compatible with [standard Prettier configuration](https://prettier.io/docs/en/configuration.html), and [.prettierignore](https://prettier.io/docs/en/ignore.html) files.
 - **Plugin Usage:** Utilizes Prettier and any plugins installed in your project, or defaults to the built-in Prettier and plugins if none are installed.
 
-## Using plugins
+## Bundled plugins
 
-To use Prettier plugins, simply install them along with Prettier in your project.
+- ✅ **[@prettier/plugin-php](https://github.com/prettier/plugin-php")**
+- ✅ **[@prettier/plugin-xml](https://github.com/prettier/plugin-xml)**
+- ✅ **[prettier-plugin-sql](https://github.com/un-ts/prettier/tree/master/packages/sql)**
+- ⚠️ **[prettier-plugin-nginx](https://github.com/jxddk/prettier-plugin-nginx)**
+
+✅ Enabled by default
+
+⚠️ Please install the [NGINX for Nova](https://extensions.panic.com/extensions/joncoole/joncoole.nginx) extension before enabling this plugin.
+
+## Using external plugins in your project
+
+To use external Prettier plugins, simply install them along with Prettier in your project.
 
 ## Ignoring files
 
-You can disable format on save for remote documents, documents without a Prettier configuration file, or specific syntaxes in the extension preferences.
+You can disable format on save for remote documents, documents without a Prettier configuration file, or specific syntaxes in the extension and project preferences.
 Additionally you can use Prettier's [built-in exclusion](https://prettier.io/docs/en/ignore.html#ignoring-files) feature by adding a `.prettierignore` file to the root of your project. _Note: adding it anywhere else won't work._
 
 ## Using a different version of Prettier

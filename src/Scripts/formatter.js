@@ -69,6 +69,13 @@ const PRETTIER_SQL_PLUGIN_SQL_FORMATTER_OPTIONS = [
 
 const PRETTIER_SQL_PLUGIN_NODE_SQL_PARSER_OPTIONS = ['database', 'type']
 
+const PRETTIER_NGINX_PLUGIN_OPTIONS = [
+	'alignDirectives',
+	'alignUniversally',
+	'wrapParameters',
+	'continuationIndent',
+]
+
 class Formatter {
 	constructor() {
 		this.prettierServiceDidExit = this.prettierServiceDidExit.bind(this)
@@ -122,12 +129,23 @@ class Formatter {
 		)
 	}
 
+	get nginxConfig() {
+		return Object.fromEntries(
+			PRETTIER_NGINX_PLUGIN_OPTIONS.map((option) => [
+				option,
+				getConfigWithWorkspaceOverride(
+					`prettier.plugins.prettier-plugin-sql.sql-formatter.${option}`,
+				),
+			]),
+		)
+	}
+
 	get nodeSqlParserConfig() {
 		return Object.fromEntries(
 			PRETTIER_SQL_PLUGIN_NODE_SQL_PARSER_OPTIONS.map((option) => [
 				option,
 				getConfigWithWorkspaceOverride(
-					`prettier.plugins.prettier-plugin-sql.node-sql-parser.${option}`,
+					`prettier.plugins.prettier-plugin-nginx.${option}`,
 				),
 			]),
 		)
@@ -298,6 +316,9 @@ class Formatter {
 		const xmlPluginEnabled = getConfigWithWorkspaceOverride(
 			'prettier.plugins.prettier-plugin-xml.enabled',
 		)
+		const nginxPluginEnabled = getConfigWithWorkspaceOverride(
+			'prettier.plugins.prettier-plugin-nginx.enabled',
+		)
 
 		/// Retrieve the configured SQL formatter type
 		const sqlFormatter = getConfigWithWorkspaceOverride(
@@ -342,6 +363,17 @@ class Formatter {
 					),
 				)
 			}
+			if (document.syntax === 'nginx' && nginxPluginEnabled) {
+				plugins.push(
+					nova.path.join(
+						nova.extension.path,
+						'node_modules',
+						'prettier-plugin-nginx',
+						'dist',
+						'index.js',
+					),
+				)
+			}
 		}
 
 		const options = {
@@ -374,6 +406,11 @@ class Formatter {
 			} else if (sqlFormatter === 'node-sql-parser') {
 				Object.assign(options, this.nodeSqlParserConfig)
 			}
+		}
+
+		// Add NGINX plugin options if the document is NGINX
+		if (document.syntax === 'nginx') {
+			Object.assign(options, this.nginxConfig)
 		}
 
 		// Log the options being used
