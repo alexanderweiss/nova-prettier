@@ -61,7 +61,7 @@
 		},
 		{
 			"key": "prettier.default-config.section",
-			"title": "Default Prettier Configuration",
+			"title": "Prettier Configuration",
 			"description": "Applied to remote files or when no Prettier configuration file exists.",
 			"type": "section",
 			"children": [
