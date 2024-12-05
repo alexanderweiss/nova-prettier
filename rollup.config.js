@@ -48,7 +48,10 @@ const mergeConfigSections = (
 
 		// Apply defaults to `ignored-syntaxes` keys
 		if (
-			mergedSection.key.startsWith('prettier.format-on-save.ignored-syntaxes.')
+			mergedSection.key.startsWith(
+				'prettier.format-on-save.ignored-syntaxes.',
+			) &&
+			mergedSection.key !== 'prettier.format-on-save.ignored-syntaxes.section'
 		) {
 			for (const [key, value] of Object.entries(defaults)) {
 				if (mergedSection[key] === undefined) {

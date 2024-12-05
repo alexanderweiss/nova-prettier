@@ -385,59 +385,6 @@
 				"key": "prettier.format-on-save.ignore-remote",
 				"type": "boolean",
 				"default": false
-			},
-			{
-				"key": "prettier.format-on-save.ignored-syntaxes.section",
-				"children": [
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.css"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.flow"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.graphql"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.html"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.javascript"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.json"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.jsx"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.less"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.markdown"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.php"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.scss"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.sql"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.typescript"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.vue"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.xml"
-					},
-					{
-						"key": "prettier.format-on-save.ignored-syntaxes.yaml"
-					}
-				]
 			}
 		]
 	}
