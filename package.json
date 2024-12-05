@@ -20,10 +20,10 @@
 		"fast-diff": "^1.2.0"
 	},
 	"devDependencies": {
-		"prettier": "^3.4.1",
 		"@rollup/plugin-commonjs": "^24.0.1",
 		"@rollup/plugin-node-resolve": "^15.0.1",
 		"@rollup/plugin-terser": "^0.4.4",
+		"prettier": "^3.4.1",
 		"rollup": "^2.79.1"
 	}
 }
