@@ -123,16 +123,9 @@
 	},
 	{
 		"key": "prettier.plugins.section",
-		"title": "Prettier Plugins",
-		"description": "Configure the bundled plugins.",
-		"type": "section",
 		"children": [
 			{
 				"key": "prettier.plugins.prettier-plugin-php.section",
-				"title": "@prettier/plugin-php",
-				"description": "PHP formatter plugin for Prettier",
-				"link": "https://github.com/prettier/plugin-php",
-				"type": "section",
 				"children": [
 					{
 						"key": "prettier.plugins.prettier-plugin-php.enabled",
@@ -142,9 +135,6 @@
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-php.phpVersion",
-						"title": "PHP Version",
-						"description": "Allows specifying the PHP version you're using. If you're using PHP 7.1 or later, setting this option will make use of modern language features in the printed output. If you're using PHP lower than 7.0, you'll have to set this option or Prettier will generate incompatible code.",
-						"type": "enum",
 						"default": "7.0",
 						"values": [
 							"5.0",
@@ -166,24 +156,16 @@
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-php.singleQuote",
-						"title": "Single Quote",
-						"description": "If set to true, strings that use double quotes but do not rely on the features they add, will be reformatted.",
 						"type": "boolean",
 						"default": false
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-php.trailingCommaPHP",
-						"title": "Trailing Comma",
-						"description": "If set to true, trailing commas will be added wherever possible. If set to false, no trailing commas are printed.",
 						"type": "boolean",
 						"default": true
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-php.braceStyle",
-						"title": "Brace Style",
-						"description": "If set to 'per-cs', prettier will move open brace for code blocks (classes, functions and methods) onto new line. If set to '1tbs', prettier will move open brace for code blocks (classes, functions and methods) onto same line.",
-						"type": "enum",
-						"radio": false,
 						"default": "per-cs",
 						"values": ["per-cs", "1tbs"]
 					}
@@ -191,10 +173,6 @@
 			},
 			{
 				"key": "prettier.plugins.prettier-plugin-xml.section",
-				"title": "@prettier/plugin-xml",
-				"description": "XML formatter plugin for Prettier",
-				"link": "https://github.com/prettier/plugin-xml",
-				"type": "section",
 				"children": [
 					{
 						"key": "prettier.plugins.prettier-plugin-xml.enabled",
@@ -204,34 +182,21 @@
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-xml.xmlQuoteAttributes",
-						"title": "Quote Attributes",
-						"description": "Quote style for XML attributes.",
-						"type": "enum",
-						"radio": false,
 						"default": "preserve",
 						"values": ["preserve", "double", "single"]
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-xml.xmlSelfClosingSpace",
-						"title": "Self Closing Space",
-						"description": "Adds a space before self-closing tags.",
 						"type": "boolean",
 						"default": true
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-xml.xmlSortAttributesByKey",
-						"title": "Sort Attributes by Key",
-						"description": "Orders XML attributes by key alphabetically while prioritizing xmlns attributes.",
 						"type": "boolean",
 						"default": false
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-xml.xmlWhitespaceSensitivity",
-						"title": "Whitespace Sensitivity",
-						"description": "You may want 'ignore' or 'preserve', see the info.",
-						"link": "https://github.com/prettier/plugin-xml#whitespace",
-						"type": "enum",
-						"radio": false,
 						"default": "strict",
 						"values": ["strict", "preserve", "ignore"]
 					}
@@ -239,10 +204,6 @@
 			},
 			{
 				"key": "prettier.plugins.prettier-plugin-sql.section",
-				"title": "prettier-plugin-sql",
-				"description": "An opinionated sql formatter plugin for Prettier",
-				"link": "https://github.com/un-ts/prettier/tree/master/packages/sql",
-				"type": "section",
 				"children": [
 					{
 						"key": "prettier.plugins.prettier-plugin-sql.enabled",
@@ -252,27 +213,14 @@
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-sql.formatter",
-						"title": "Formatter",
-						"description": "Specifies the formatter to use for SQL code formatting.",
-						"type": "enum",
-						"radio": false,
 						"default": "sql-formatter",
 						"values": ["sql-formatter", "node-sql-parser"]
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.section",
-						"title": "sql-formatter",
-						"description": "Options for sql-formatter.",
-						"link": "https://github.com/sql-formatter-org/sql-formatter?tab=readme-ov-file#configuration-options",
-						"type": "section",
 						"children": [
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.language",
-								"title": "Language",
-								"description": "Specifies the SQL dialect to use.",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/language.md",
-								"type": "enum",
-								"radio": false,
 								"default": "sql",
 								"values": [
 									"bigquery",
@@ -297,108 +245,59 @@
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.keywordCase",
-								"title": "Keyword Case",
-								"description": "Uppercases or lowercases keywords.",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/keywordCase.md",
-								"type": "enum",
-								"radio": false,
 								"default": "preserve",
 								"values": ["preserve", "upper", "lower"]
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.dataTypeCase",
-								"title": "Data Type Case",
-								"description": "Uppercases or lowercases data types.",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/dataTypeCase.md",
-								"type": "enum",
-								"radio": false,
 								"default": "preserve",
 								"values": ["preserve", "upper", "lower"]
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.functionCase",
-								"title": "Function Case",
-								"description": "Uppercases or lowercases function names.",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/functionCase.md",
-								"type": "enum",
-								"radio": false,
 								"default": "preserve",
 								"values": ["preserve", "upper", "lower"]
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.identifierCase",
-								"title": "Identifier Case",
-								"description": "Uppercases or lowercases identifiers. (experimental!)",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/identifierCase.md",
-								"type": "enum",
-								"radio": false,
 								"default": "preserve",
 								"values": ["preserve", "upper", "lower"]
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.logicalOperatorNewline",
-								"title": "Logical Operator Newline",
-								"description": "Newline before or after boolean operator (AND, OR, XOR)",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/logicalOperatorNewline.md",
-								"type": "enum",
-								"radio": false,
 								"default": "before",
 								"values": ["before", "after"]
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.expressionWidth",
-								"title": "Expression Width",
-								"description": "Maximum number of characters in parenthesized expressions to be kept on single line.",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/expressionWidth.md",
-								"type": "number",
 								"placeholder": "50",
 								"default": 50,
-								"min": 0,
 								"required": true
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.linesBetweenQueries",
-								"title": "Lines Between Queries",
-								"description": "How many newlines to insert between queries.",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/linesBetweenQueries.md",
-								"type": "number",
 								"placeholder": "1",
 								"default": 1,
-								"min": 0,
 								"required": true
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.denseOperators",
-								"title": "Dense Operators",
-								"description": "Packs operators densely without spaces.",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/denseOperators.md",
 								"type": "boolean",
 								"default": false
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.newlineBeforeSemicolon",
-								"title": "Newline Before Semicolon",
-								"description": "Places semicolon on separate line.",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/newlineBeforeSemicolon.md",
 								"type": "boolean",
 								"default": false
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.params",
-								"title": "Parameter",
-								"description": "Specifies parameter values to fill in for placeholders inside SQL.",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/params.md",
-								"type": "text",
 								"placeholder": "{}",
 								"default": "{}",
 								"required": true
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.paramTypes",
-								"title": "Parameter Types",
-								"description": "Specifies parameter types to support when parsing SQL prepared statements.",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/paramTypes.md",
-								"type": "text",
 								"placeholder": "{}",
 								"default": "{}",
 								"required": true
@@ -407,17 +306,9 @@
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-sql.node-sql-parser.section",
-						"title": "node-sql-parser",
-						"description": "Options for node-sql-parser",
-						"link": "https://github.com/taozhi8833998/node-sql-parser#rocket-usage",
-						"type": "section",
 						"children": [
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.node-sql-parser.database",
-								"title": "Language",
-								"description": "Specifies the SQL dialect to use.",
-								"type": "enum",
-								"radio": false,
 								"default": "mysql",
 								"values": [
 									"bigquery",
@@ -433,10 +324,6 @@
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.node-sql-parser.type",
-								"title": "Type",
-								"description": "Specifies whether to focus on tables or columns for parsing and formatting in SQL queries.",
-								"type": "enum",
-								"radio": false,
 								"default": "table",
 								"values": ["table", "column"]
 							}
@@ -459,32 +346,23 @@
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-nginx.alignDirectives",
-						"title": "Align Directives",
-						"description": "Align directive parameters within a block to the same column.",
 						"type": "boolean",
 						"default": true
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-nginx.alignUniversally",
-						"title": "Align Universally",
-						"description": "Align all directive parameters within a file to the same column.",
 						"type": "boolean",
 						"default": false
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-nginx.wrapParameters",
-						"title": "Wrap Parameters",
-						"description": "Wrap parameters to new lines to fit print width.",
 						"type": "boolean",
 						"default": true
 					},
 					{
 						"key": "prettier.plugins.prettier-plugin-xml.continuationIndent",
-						"title": "Continuation Indent",
-						"description": "Additional indentation for wrapped lines.",
-						"type": "number",
-						"default": 2,
-						"min": 0
+						"placeholder": "2",
+						"default": 2
 					}
 				]
 			}
@@ -492,35 +370,24 @@
 	},
 	{
 		"key": "prettier.format-on-save.section",
-		"title": "Format on Save Settings",
-		"type": "section",
 		"children": [
 			{
 				"key": "prettier.format-on-save",
-				"title": "Format on Saved",
-				"description": "Automatically format documents when they are saved.",
 				"type": "boolean",
 				"default": true
 			},
 			{
 				"key": "prettier.format-on-save.ignore-without-config",
-				"title": "Ignore Without Config",
-				"description": "When enabled, documents without a Prettier configuration file will not be formatted on save",
 				"type": "boolean",
 				"default": false
 			},
 			{
 				"key": "prettier.format-on-save.ignore-remote",
-				"title": "Ignore Remote Documents",
-				"description": "When enabled, remote documents will be ignored during format on save.",
 				"type": "boolean",
 				"default": false
 			},
 			{
 				"key": "prettier.format-on-save.ignored-syntaxes.section",
-				"title": "Ignored Syntaxes",
-				"description": "Documents that are set to an ignored syntax will not be formatted when saved.",
-				"type": "section",
 				"children": [
 					{
 						"key": "prettier.format-on-save.ignored-syntaxes.css"

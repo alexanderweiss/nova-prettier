@@ -336,8 +336,7 @@
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.denseOperators",
 								"title": "Dense Operators",
 								"description": "Packs operators densely without spaces.",
-								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/denseOperators.md",
-								"type": "boolean"
+								"link": "https://github.com/sql-formatter-org/sql-formatter/blob/master/docs/denseOperators.md"
 							},
 							{
 								"key": "prettier.plugins.prettier-plugin-sql.sql-formatter.newlineBeforeSemicolon",
