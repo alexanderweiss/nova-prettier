@@ -12,12 +12,14 @@ const POSSIBLE_CURSORS = String.fromCharCode(
 	0x1f094,
 	0x1f08d,
 	0xe004,
-	0x1f08d
+	0x1f08d,
 ).split('')
 
 const PRETTIER_OPTIONS = [
 	'arrowParens',
+	'bracketSameLine',
 	'bracketSpacing',
+	'embeddedLanguageFormatting',
 	'endOfLine',
 	'htmlWhitespaceSensitivity',
 	'insertPragma',
@@ -28,11 +30,50 @@ const PRETTIER_OPTIONS = [
 	'quoteProps',
 	'requirePragma',
 	'semi',
+	'singleAttributePerLine',
 	'singleQuote',
 	'tabWidth',
 	'trailingComma',
 	'useTabs',
 	'vueIndentScriptAndStyle',
+]
+
+const PRETTIER_PHP_PLUGIN_OPTIONS = [
+	'phpVersion',
+	'singleQuote',
+	'trailingCommaPHP',
+	'braceStyle',
+]
+
+const PRETTIER_XML_PLUGIN_OPTIONS = [
+	'xmlQuoteAttributes',
+	'xmlSelfClosingSpace',
+	'xmlSortAttributesByKey',
+	'xmlWhitespaceSensitivity',
+]
+
+const PRETTIER_SQL_PLUGIN_SQL_FORMATTER_OPTIONS = [
+	'language',
+	'keywordCase',
+	'dataTypeCase',
+	'functionCase',
+	'identifierCase',
+	'logicalOperatorNewline',
+	'expressionWidth',
+	'linesBetweenQueries',
+	'denseOperators',
+	'newlineBeforeSemicolon',
+	'params',
+	'paramTypes',
+]
+
+const PRETTIER_SQL_PLUGIN_NODE_SQL_PARSER_OPTIONS = ['database', 'type']
+
+const PRETTIER_NGINX_PLUGIN_OPTIONS = [
+	'alignDirectives',
+	'alignUniversally',
+	'wrapParameters',
+	'continuationIndent',
 ]
 
 class Formatter {
@@ -51,7 +92,62 @@ class Formatter {
 			PRETTIER_OPTIONS.map((option) => [
 				option,
 				getConfigWithWorkspaceOverride(`prettier.default-config.${option}`),
-			])
+			]),
+		)
+	}
+
+	get phpConfig() {
+		return Object.fromEntries(
+			PRETTIER_PHP_PLUGIN_OPTIONS.map((option) => [
+				option,
+				getConfigWithWorkspaceOverride(
+					`prettier.plugins.prettier-plugin-php.${option}`,
+				),
+			]),
+		)
+	}
+
+	get xmlConfig() {
+		return Object.fromEntries(
+			PRETTIER_XML_PLUGIN_OPTIONS.map((option) => [
+				option,
+				getConfigWithWorkspaceOverride(
+					`prettier.plugins.prettier-plugin-xml.${option}`,
+				),
+			]),
+		)
+	}
+
+	get sqlFormatterConfig() {
+		return Object.fromEntries(
+			PRETTIER_SQL_PLUGIN_SQL_FORMATTER_OPTIONS.map((option) => [
+				option,
+				getConfigWithWorkspaceOverride(
+					`prettier.plugins.prettier-plugin-sql.sql-formatter.${option}`,
+				),
+			]),
+		)
+	}
+
+	get nginxConfig() {
+		return Object.fromEntries(
+			PRETTIER_NGINX_PLUGIN_OPTIONS.map((option) => [
+				option,
+				getConfigWithWorkspaceOverride(
+					`prettier.plugins.prettier-plugin-sql.sql-formatter.${option}`,
+				),
+			]),
+		)
+	}
+
+	get nodeSqlParserConfig() {
+		return Object.fromEntries(
+			PRETTIER_SQL_PLUGIN_NODE_SQL_PARSER_OPTIONS.map((option) => [
+				option,
+				getConfigWithWorkspaceOverride(
+					`prettier.plugins.prettier-plugin-nginx.${option}`,
+				),
+			]),
 		)
 	}
 
@@ -83,7 +179,7 @@ class Formatter {
 					nova.extension.path,
 					'Scripts',
 					'prettier-service',
-					'prettier-service.js'
+					'prettier-service.js',
 				),
 				this.modulePath,
 			],
@@ -96,7 +192,7 @@ class Formatter {
 		})
 		this.prettierService.onNotify(
 			'startDidFail',
-			this.prettierServiceStartDidFail
+			this.prettierServiceStartDidFail,
 		)
 		this.prettierService.start()
 	}
@@ -156,8 +252,8 @@ class Formatter {
 
 		showActionableError(
 			'prettier-not-running',
-			`Couldn't load Prettier`,
-			`Is your Node up to date? Or did you set an invalid 'Prettier module' path in the extension or project settings? A detailed log of the error is available in the extension console.`,
+			`Couldn't Load Prettier`,
+			`Please ensure your Node.js installation is up to date. Additionally, check if the 'Prettier module' path is correctly set in your extension or project settings. For more details, refer to the error log in the Extension Console`,
 			['Project settings', 'Extension settings'],
 			(r) => {
 				switch (r) {
@@ -168,7 +264,7 @@ class Formatter {
 						nova.openConfig()
 						break
 				}
-			}
+			},
 		)
 
 		console.error(`${error.name}: ${error.message}\n${error.stack}`)
@@ -177,8 +273,8 @@ class Formatter {
 	showServiceNotRunningError() {
 		showActionableError(
 			'prettier-not-running',
-			'Prettier stopped running',
-			`Please report report an issue though Extension Library if this problem persits.`,
+			'Prettier Stopped Running',
+			`If this problem persists, please report the issue through the Extension Library.`,
 			['Restart Prettier'],
 			(r) => {
 				switch (r) {
@@ -186,7 +282,7 @@ class Formatter {
 						this.start()
 						break
 				}
-			}
+			},
 		)
 	}
 
@@ -200,7 +296,7 @@ class Formatter {
 		const shouldApplyDefaultConfig = await this.shouldApplyDefaultConfig(
 			document,
 			saving,
-			pathForConfig
+			pathForConfig,
 		)
 
 		if (shouldApplyDefaultConfig === null) return []
@@ -209,17 +305,116 @@ class Formatter {
 
 		const documentRange = new Range(0, document.length)
 		const original = editor.getTextInRange(documentRange)
+
+		// Check if plugins are enabled
+		const phpPluginEnabled = getConfigWithWorkspaceOverride(
+			'prettier.plugins.prettier-plugin-php.enabled',
+		)
+		const sqlPluginEnabled = getConfigWithWorkspaceOverride(
+			'prettier.plugins.prettier-plugin-sql.enabled',
+		)
+		const xmlPluginEnabled = getConfigWithWorkspaceOverride(
+			'prettier.plugins.prettier-plugin-xml.enabled',
+		)
+		const nginxPluginEnabled = getConfigWithWorkspaceOverride(
+			'prettier.plugins.prettier-plugin-nginx.enabled',
+		)
+
+		/// Retrieve the configured SQL formatter type
+		const sqlFormatter = getConfigWithWorkspaceOverride(
+			'prettier.plugins.prettier-plugin-sql.formatter',
+		)
+
+		// Initialize plugins array and conditionally load plugins if enabled
+		let plugins = []
+		if (this.modulePath.includes(nova.extension.path)) {
+			if (document.syntax === 'php' && phpPluginEnabled) {
+				plugins.push(
+					nova.path.join(
+						nova.extension.path,
+						'node_modules',
+						'@prettier',
+						'plugin-php',
+						'src',
+						'index.mjs',
+					),
+				)
+			}
+			if (document.syntax === 'sql' && sqlPluginEnabled) {
+				plugins.push(
+					nova.path.join(
+						nova.extension.path,
+						'node_modules',
+						'prettier-plugin-sql',
+						'lib',
+						'index.cjs',
+					),
+				)
+			}
+			if (document.syntax === 'xml' && xmlPluginEnabled) {
+				plugins.push(
+					nova.path.join(
+						nova.extension.path,
+						'node_modules',
+						'@prettier',
+						'plugin-xml',
+						'src',
+						'plugin.js',
+					),
+				)
+			}
+			if (document.syntax === 'nginx' && nginxPluginEnabled) {
+				plugins.push(
+					nova.path.join(
+						nova.extension.path,
+						'node_modules',
+						'prettier-plugin-nginx',
+						'dist',
+						'index.js',
+					),
+				)
+			}
+		}
+
 		const options = {
 			parser: this.getParserForSyntax(document.syntax),
+			...(plugins.length > 0 ? { plugins } : {}),
 			...(document.path ? { filepath: document.path } : {}),
 			...(shouldApplyDefaultConfig ? this.defaultConfig : {}),
 			...(selectionOnly
 				? {
 						rangeStart: editor.selectedRange.start,
 						rangeEnd: editor.selectedRange.end,
-				  }
+					}
 				: {}),
 		}
+
+		// Add PHP plugin options if the document is PHP
+		if (document.syntax === 'php') {
+			Object.assign(options, this.phpConfig)
+		}
+
+		// Add XML plugin options if the document is XML
+		if (document.syntax === 'xml') {
+			Object.assign(options, this.xmlConfig)
+		}
+
+		// Add SQL plugin options if the document is SQL
+		if (document.syntax === 'sql') {
+			if (sqlFormatter === 'sql-formatter') {
+				Object.assign(options, this.sqlFormatterConfig)
+			} else if (sqlFormatter === 'node-sql-parser') {
+				Object.assign(options, this.nodeSqlParserConfig)
+			}
+		}
+
+		// Add NGINX plugin options if the document is NGINX
+		if (document.syntax === 'nginx') {
+			Object.assign(options, this.nginxConfig)
+		}
+
+		// Log the options being used
+		log.info('Prettier options:', JSON.stringify(options, null, 2))
 
 		const result = await this.prettierService.request('format', {
 			original,
@@ -243,8 +438,8 @@ class Formatter {
 			if (!saving) {
 				showError(
 					'prettier-unsupported-syntax',
-					`Syntax not supported`,
-					`Prettier doesn't include a Parser for this file and no plugin is installed that does.`
+					`Syntax Not Supported`,
+					`Prettier doesn't include a parser for this file, and no installed plugin provides one.`,
 				)
 			}
 			log.info(`No parser for ${document.path}`)
@@ -263,12 +458,12 @@ class Formatter {
 		// Don't format-on-save ignore syntaxes.
 		if (
 			saving &&
-			nova.config.get(
-				`prettier.format-on-save.ignored-syntaxes.${document.syntax}`
+			getConfigWithWorkspaceOverride(
+				`prettier.format-on-save.ignored-syntaxes.${document.syntax}`,
 			) === true
 		) {
 			log.info(
-				`Not formatting (${document.syntax} syntax ignored) ${document.path}`
+				`Not formatting (${document.syntax} syntax ignored) ${document.path}`,
 			)
 			return null
 		}
@@ -293,7 +488,7 @@ class Formatter {
 				!hasConfig &&
 				saving &&
 				getConfigWithWorkspaceOverride(
-					'prettier.format-on-save.ignore-without-config'
+					'prettier.format-on-save.ignore-without-config',
 				)
 			) {
 				return null
@@ -330,7 +525,7 @@ class Formatter {
 		const [cursor, edits] = this.diff(
 			original,
 			formatted,
-			editor.selectedRanges
+			editor.selectedRanges,
 		)
 
 		if (
@@ -350,7 +545,7 @@ class Formatter {
 	diff(original, formatted, selectedRanges) {
 		// Find a cursor that does not occur in this document
 		const cursor = POSSIBLE_CURSORS.find(
-			(cursor) => !original.includes(cursor) && !formatted.includes(cursor)
+			(cursor) => !original.includes(cursor) && !formatted.includes(cursor),
 		)
 		// Fall back to not knowing the cursor position.
 		if (!cursor) return null
