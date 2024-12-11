@@ -16,7 +16,7 @@ Experience seamless code formatting with Prettier directly in Nova.
 
 ✅ Enabled by default
 
-⚠️ Please install the [NGINX for Nova](https://extensions.panic.com/extensions/joncoole/joncoole.nginx) extension before enabling this plugin.
+⚠️ Please install the [NGINX for Nova](nova://extension?id=joncoole.nginx) extension before enabling this plugin.
 
 ## Using external plugins in your project
 
