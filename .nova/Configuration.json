@@ -1,8 +1,6 @@
 {
   "editor.default_syntax" : "javascript",
   "index.ignored_file_patterns" : [
-    "prettier.novaextension\/config.json",
-    "prettier.novaextension\/configWorkspace.json",
     "prettier.novaextension\/Scripts\/*"
   ],
   "prettier.default-config.endOfLine" : "lf",
