@@ -1,5 +1,14 @@
 {
+  "editor.default_syntax" : "javascript",
   "index.ignored_file_patterns" : [
     "prettier.novaextension\/Scripts\/*"
-  ]
+  ],
+  "prettier.default-config.endOfLine" : "lf",
+  "prettier.default-config.printWidth" : 80,
+  "prettier.default-config.semi" : "Disabled",
+  "prettier.default-config.singleQuote" : "Enabled",
+  "prettier.default-config.useTabs" : "Enabled",
+  "workspace.art_style" : 1,
+  "workspace.color" : 12,
+  "workspace.name" : "Nova Prettier Extension"
 }
