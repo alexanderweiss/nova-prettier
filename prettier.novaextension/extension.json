@@ -28,6 +28,22 @@
 				"title": "Save Without Formatting",
 				"command": "prettier.save-without-formatting"
 			}
+		],
+		"text": [
+			{
+				"title": "Format",
+				"command": "prettier.format",
+				"shortcut": "option-shift-f"
+			},
+			{
+				"title": "Format Selection",
+				"command": "prettier.format-selection",
+				"when": "editorHasSelection"
+			},
+			{
+				"title": "Save Without Formatting",
+				"command": "prettier.save-without-formatting"
+			}
 		]
 	},
 	"config": [
