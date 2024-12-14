@@ -87,7 +87,7 @@ const log = Object.fromEntries(
 			}
 			console[fn](...args)
 		},
-	])
+	]),
 )
 
 module.exports = {

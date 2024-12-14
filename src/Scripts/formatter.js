@@ -12,7 +12,7 @@ const POSSIBLE_CURSORS = String.fromCharCode(
 	0x1f094,
 	0x1f08d,
 	0xe004,
-	0x1f08d
+	0x1f08d,
 ).split('')
 
 const PRETTIER_OPTIONS = [
@@ -51,7 +51,7 @@ class Formatter {
 			PRETTIER_OPTIONS.map((option) => [
 				option,
 				getConfigWithWorkspaceOverride(`prettier.default-config.${option}`),
-			])
+			]),
 		)
 	}
 
@@ -83,7 +83,7 @@ class Formatter {
 					nova.extension.path,
 					'Scripts',
 					'prettier-service',
-					'prettier-service.js'
+					'prettier-service.js',
 				),
 				this.modulePath,
 			],
@@ -96,7 +96,7 @@ class Formatter {
 		})
 		this.prettierService.onNotify(
 			'startDidFail',
-			this.prettierServiceStartDidFail
+			this.prettierServiceStartDidFail,
 		)
 		this.prettierService.start()
 	}
@@ -168,7 +168,7 @@ class Formatter {
 						nova.openConfig()
 						break
 				}
-			}
+			},
 		)
 
 		console.error(`${error.name}: ${error.message}\n${error.stack}`)
@@ -186,7 +186,7 @@ class Formatter {
 						this.start()
 						break
 				}
-			}
+			},
 		)
 	}
 
@@ -200,7 +200,7 @@ class Formatter {
 		const shouldApplyDefaultConfig = await this.shouldApplyDefaultConfig(
 			document,
 			saving,
-			pathForConfig
+			pathForConfig,
 		)
 
 		if (shouldApplyDefaultConfig === null) return []
@@ -217,7 +217,7 @@ class Formatter {
 				? {
 						rangeStart: editor.selectedRange.start,
 						rangeEnd: editor.selectedRange.end,
-				  }
+					}
 				: {}),
 		}
 
@@ -244,7 +244,7 @@ class Formatter {
 				showError(
 					'prettier-unsupported-syntax',
 					`Syntax not supported`,
-					`Prettier doesn't include a Parser for this file and no plugin is installed that does.`
+					`Prettier doesn't include a Parser for this file and no plugin is installed that does.`,
 				)
 			}
 			log.info(`No parser for ${document.path}`)
@@ -264,11 +264,11 @@ class Formatter {
 		if (
 			saving &&
 			nova.config.get(
-				`prettier.format-on-save.ignored-syntaxes.${document.syntax}`
+				`prettier.format-on-save.ignored-syntaxes.${document.syntax}`,
 			) === true
 		) {
 			log.info(
-				`Not formatting (${document.syntax} syntax ignored) ${document.path}`
+				`Not formatting (${document.syntax} syntax ignored) ${document.path}`,
 			)
 			return null
 		}
@@ -293,7 +293,7 @@ class Formatter {
 				!hasConfig &&
 				saving &&
 				getConfigWithWorkspaceOverride(
-					'prettier.format-on-save.ignore-without-config'
+					'prettier.format-on-save.ignore-without-config',
 				)
 			) {
 				return null
@@ -330,7 +330,7 @@ class Formatter {
 		const [cursor, edits] = this.diff(
 			original,
 			formatted,
-			editor.selectedRanges
+			editor.selectedRanges,
 		)
 
 		if (
@@ -350,7 +350,7 @@ class Formatter {
 	diff(original, formatted, selectedRanges) {
 		// Find a cursor that does not occur in this document
 		const cursor = POSSIBLE_CURSORS.find(
-			(cursor) => !original.includes(cursor) && !formatted.includes(cursor)
+			(cursor) => !original.includes(cursor) && !formatted.includes(cursor),
 		)
 		// Fall back to not knowing the cursor position.
 		if (!cursor) return null
