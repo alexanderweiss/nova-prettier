@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directories:
+      - '/'
+      - '/prettier.novaextension'
+    schedule:
+      interval: 'monthly'
+    versioning-strategy: increase
+    groups:
+      rollup:
+        patterns:
+          - '@rollup/*'
+          - rollup
