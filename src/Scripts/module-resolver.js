@@ -34,7 +34,7 @@ function findModuleWithFileSystem(directory, module) {
 					return true
 				}
 			} catch {}
-		}
+		},
 	)
 	if (!packageResult) return null
 
@@ -42,7 +42,7 @@ function findModuleWithFileSystem(directory, module) {
 	const moduleResult = findPathRecursively(
 		packageResult.directory,
 		nova.path.join('node_modules', module),
-		(path, stats) => stats.isDirectory() || stats.isSymbolicLink()
+		(path, stats) => stats.isDirectory() || stats.isSymbolicLink(),
 	)
 
 	return moduleResult ? moduleResult.path : null
@@ -67,7 +67,7 @@ async function findModuleWithNPM(directory, module) {
 		if (!name || !name.startsWith(`${module}@`)) return resolve(null)
 		if (path === nova.workspace.path) {
 			log.info(
-				`You seem to be working on ${module}! The extension doesn't work without ${module} built, so using the built-in ${module} instead.`
+				`You seem to be working on ${module}! The extension doesn't work without ${module} built, so using the built-in ${module} instead.`,
 			)
 			return resolve(null)
 		}
@@ -116,7 +116,7 @@ module.exports = async function () {
 			log.warn(
 				'Error trying to find workspace Prettier using file system',
 				err,
-				err.stack
+				err.stack,
 			)
 		}
 
@@ -132,7 +132,7 @@ module.exports = async function () {
 			log.warn(
 				'Error trying to find workspace Prettier using npm',
 				err,
-				err.stack
+				err.stack,
 			)
 		}
 	}

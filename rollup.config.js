@@ -13,8 +13,7 @@ export default [
 	{
 		input: 'src/Scripts/prettier-service/prettier-service.js',
 		output: {
-			file:
-				'prettier.novaextension/Scripts/prettier-service/prettier-service.js',
+			file: 'prettier.novaextension/Scripts/prettier-service/prettier-service.js',
 			format: 'cjs',
 		},
 	},
