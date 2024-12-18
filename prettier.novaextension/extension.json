@@ -15,34 +15,38 @@
 	"commands": {
 		"editor": [
 			{
-				"title": "Format",
+				"title": "Format Document",
 				"command": "prettier.format",
-				"shortcut": "option-shift-f"
+				"shortcut": "opt-shift-f"
 			},
 			{
 				"title": "Format Selection",
 				"command": "prettier.format-selection",
-				"when": "editorHasSelection"
+				"when": "editorHasSelection",
+				"shortcut": "ctrl-opt-shift-f"
 			},
 			{
 				"title": "Save Without Formatting",
-				"command": "prettier.save-without-formatting"
+				"command": "prettier.save-without-formatting",
+				"shortcut": "cmd-ctrl-shift-s"
 			}
 		],
 		"text": [
 			{
-				"title": "Format",
+				"title": "Format Document",
 				"command": "prettier.format",
-				"shortcut": "option-shift-f"
+				"shortcut": "opt-shift-f"
 			},
 			{
 				"title": "Format Selection",
 				"command": "prettier.format-selection",
-				"when": "editorHasSelection"
+				"when": "editorHasSelection",
+				"shortcut": "ctrl-opt-shift-f"
 			},
 			{
 				"title": "Save Without Formatting",
-				"command": "prettier.save-without-formatting"
+				"command": "prettier.save-without-formatting",
+				"shortcut": "cmd-ctrl-shift-s"
 			}
 		]
 	},
@@ -54,8 +58,9 @@
 			"children": [
 				{
 					"key": "prettier.module.path",
-					"title": "Prettier module",
-					"description": "Prettier module folder. If none is specified, it defaults to the Prettier installed in the project or, if there is none, the version embedded in the extension. Can be overridden in project settings.",
+					"title": "Prettier Module",
+					"description": "Set a folder for the Prettier module. If not set, it defaults to the build-in Prettier or the module in the project.",
+					"placeholder": "e.g. /opt/homebrew/lib/node_modules/prettier",
 					"type": "path",
 					"allowFiles": false,
 					"allowFolders": true,
@@ -63,39 +68,44 @@
 				},
 				{
 					"key": "prettier.debug.logging",
-					"title": "Log debug information to Extension Console",
+					"title": "Log Debug Information",
+					"description": "Send debug information to the Extension Console.",
 					"type": "boolean",
-					"default": true
+					"default": false
 				}
 			]
 		},
 		{
 			"key": "prettier.default-config.section",
-			"title": "Default Prettier configuration",
-			"description": "Used for remote files or if no Prettier configuration file exists. Can be overridden in project settings.",
+			"title": "Prettier Configuration",
+			"description": "Applied to remote files or when no Prettier configuration file exists.",
 			"type": "section",
 			"children": [
 				{
 					"key": "prettier.default-config.printWidth",
-					"title": "Print width",
+					"title": "Print Width",
 					"description": "Specify the line length that the printer will wrap on.",
 					"link": "https://prettier.io/docs/en/options.html#print-width",
 					"type": "number",
+					"placeholder": "80",
 					"default": 80,
+					"required": true,
 					"min": 0
 				},
 				{
 					"key": "prettier.default-config.tabWidth",
-					"title": "Tab width",
+					"title": "Tab Width",
 					"description": "Specify the number of spaces per indentation-level.",
 					"link": "https://prettier.io/docs/en/options.html#tab-width",
 					"type": "number",
+					"placeholder": "2",
 					"default": 2,
+					"required": true,
 					"min": 0
 				},
 				{
 					"key": "prettier.default-config.useTabs",
-					"title": "Use tabs",
+					"title": "Tabs",
 					"description": "Indent lines with tabs instead of spaces.",
 					"link": "https://prettier.io/docs/en/options.html#tabs",
 					"type": "boolean",
@@ -103,155 +113,186 @@
 				},
 				{
 					"key": "prettier.default-config.semi",
-					"title": "Use semicolons",
+					"title": "Semicolons",
 					"description": "Print semicolons at the ends of statements.",
-					"link": "https://prettier.io/docs/en/options.html#semi",
+					"link": "https://prettier.io/docs/en/options.html#semicolons",
 					"type": "boolean",
 					"default": true
 				},
 				{
 					"key": "prettier.default-config.singleQuote",
-					"title": "Use single quotes",
+					"title": "Single Quotes",
 					"description": "Use single quotes instead of double quotes.",
-					"link": "https://prettier.io/docs/en/options.html#single-quote",
+					"link": "https://prettier.io/docs/en/options.html#quotes",
 					"type": "boolean",
 					"default": false
 				},
 				{
 					"key": "prettier.default-config.quoteProps",
-					"title": "Quote props",
+					"title": "Quote Props",
 					"description": "Change when properties in objects are quoted.",
 					"link": "https://prettier.io/docs/en/options.html#quote-props",
 					"type": "enum",
+					"radio": false,
 					"default": "as-needed",
 					"values": ["as-needed", "consistent", "preserve"]
 				},
 				{
 					"key": "prettier.default-config.jsxSingleQuote",
-					"title": "Use single quotes in JSX",
+					"title": "JSX Single Quotes",
 					"description": "Use single quotes instead of double quotes in JSX.",
-					"link": "https://prettier.io/docs/en/options.html#jsx-single-quote",
+					"link": "https://prettier.io/docs/en/options.html#jsx-quotes",
 					"type": "boolean",
 					"default": false
 				},
 				{
 					"key": "prettier.default-config.trailingComma",
-					"title": "Trailing commas",
-					"description": "Print trailing commas wherever possible when multi-line. (A single-line array, for example, never gets trailing commas.)",
-					"link": "https://prettier.io/docs/en/options.html#trailing-comma",
+					"title": "Trailing Commas",
+					"description": "Print trailing commas wherever possible in multi-line comma-separated syntactic structures. (A single-line array, for example, never gets trailing commas.)",
+					"link": "https://prettier.io/docs/en/options.html#trailing-commas",
 					"type": "enum",
-					"default": "es5",
-					"values": ["es5", "none", "all"]
+					"radio": false,
+					"default": "all",
+					"values": ["all", "es5", "none"]
 				},
 				{
 					"key": "prettier.default-config.bracketSpacing",
-					"title": "Use bracket spacing",
+					"title": "Bracket Spacing",
 					"description": "Print spaces between brackets in object literals.",
 					"link": "https://prettier.io/docs/en/options.html#bracket-spacing",
 					"type": "boolean",
 					"default": true
 				},
 				{
+					"key": "prettier.default-config.bracketSameLine",
+					"title": "Bracket Line",
+					"description": "Put the > of a multi-line HTML (HTML, JSX, Vue, Angular) element at the end of the last line instead of being alone on the next line (does not apply to self closing elements).",
+					"link": "https://prettier.io/docs/en/options.html#bracket-line",
+					"type": "boolean",
+					"default": false
+				},
+				{
 					"key": "prettier.default-config.jsxBracketSameLine",
-					"title": "Use same-line JSX brackets",
+					"title": "[Deprecated] JSX Brackets",
 					"description": "Put the > of a multi-line JSX element at the end of the last line instead of being alone on the next line (does not apply to self closing elements).",
-					"link": "https://prettier.io/docs/en/options.html#jsx-brackets-same-line",
+					"link": "https://prettier.io/docs/en/options#deprecated-jsx-brackets",
 					"type": "boolean",
 					"default": false
 				},
 				{
 					"key": "prettier.default-config.arrowParens",
-					"title": "Arrow function parentheses",
+					"title": "Arrow Function Parentheses",
 					"description": "Include parentheses around a sole arrow function parameter.",
-					"link": "https://prettier.io/docs/en/options.html#arrow-parens",
+					"link": "https://prettier.io/docs/en/options.html#arrow-function-parentheses",
 					"type": "enum",
+					"radio": false,
 					"default": "always",
 					"values": ["always", "avoid"]
 				},
 				{
 					"key": "prettier.default-config.requirePragma",
-					"title": "Require pragma",
-					"description": "Prettier can restrict itself to only format files that contain a special comment, called a pragma, at the top of the file. This is very useful when gradually transitioning large, unformatted codebases to prettier.",
+					"title": "Require Pragma",
+					"description": "Prettier can restrict itself to only format files that contain a special comment, called a pragma, at the top of the file. This is very useful when gradually transitioning large, unformatted codebases to Prettier.",
 					"link": "https://prettier.io/docs/en/options.html#require-pragma",
 					"type": "boolean",
 					"default": false
 				},
 				{
 					"key": "prettier.default-config.insertPragma",
-					"title": "Insert pragma",
-					"description": "Prettier can insert a special @format marker at the top of files specifying that the file has been formatted with prettier. This works well when used in tandem with the --require-pragma option. If there is already a docblock at the top of the file then this option will add a newline to it with the @format marker.",
+					"title": "Insert Pragma",
+					"description": "Prettier can insert a special @format marker at the top of files specifying that the file has been formatted with Prettier. This works well when used in tandem with the above Require Pragma option. If there is already a docblock at the top of the file then this option will add a newline to it with the @format marker.",
 					"link": "https://prettier.io/docs/en/options.html#insert-pragma",
 					"type": "boolean",
 					"default": false
 				},
 				{
 					"key": "prettier.default-config.proseWrap",
-					"title": "Prose wrap",
-					"description": "By default, Prettier will wrap markdown text as-is since some services use a linebreak-sensitive renderer, e.g. GitHub comment and BitBucket. In some cases you may want to rely on editor/viewer soft wrapping instead, so this option allows you to opt out with \"never\".",
+					"title": "Prose Wrap",
+					"description": "By default, Prettier will not change wrapping in markdown text since some services use a linebreak-sensitive renderer, e.g. GitHub comments and BitBucket. To have Prettier wrap prose to the print width, change this option to \"always\". If you want Prettier to force all prose blocks to be on a single line and rely on editor/viewer soft wrapping instead, you can use \"never\".",
 					"link": "https://prettier.io/docs/en/options.html#prose-wrap",
 					"type": "enum",
+					"radio": false,
 					"default": "preserve",
 					"values": ["always", "never", "preserve"]
 				},
 				{
 					"key": "prettier.default-config.htmlWhitespaceSensitivity",
-					"title": "HTML whitespace sensitivity",
-					"description": "Specify the global whitespace sensitivity for HTML files, see Prettier documentation formatting for more info.",
+					"title": "HTML Whitespace Sensitivity",
+					"description": "Specify the global whitespace sensitivity for HTML, Vue, Angular, and Handlebars. See Prettier documentation for more info.",
 					"link": "https://prettier.io/docs/en/options.html#html-whitespace-sensitivity",
 					"type": "enum",
+					"radio": false,
 					"default": "css",
 					"values": ["css", "strict", "ignore"]
 				},
 				{
 					"key": "prettier.default-config.vueIndentScriptAndStyle",
-					"title": "Ident vue file script and style tags",
-					"description": "Whether or not to indent the code inside <script> and <style> tags in Vue files. Some people (like the creator of Vue) don’t indent to save an indentation level, but this might break code folding in your editor.",
-					"link": "https://prettier.io/docs/en/options.html#vue-indent-script-and-style",
+					"title": "Vue files script and style tags indentation",
+					"description": "Whether or not to indent the code inside <script> and <style> tags in Vue files.",
+					"link": "https://prettier.io/docs/en/options.html#vue-files-script-and-style-tags-indentation",
 					"type": "boolean",
 					"default": false
 				},
 				{
 					"key": "prettier.default-config.endOfLine",
-					"title": "End of line",
-					"description": "",
+					"title": "End of Line",
+					"description": "Newline control character",
 					"link": "https://prettier.io/docs/en/options.html#end-of-line",
 					"type": "enum",
+					"radio": false,
 					"default": "lf",
 					"values": ["lf", "crlf", "cr", "auto"]
+				},
+				{
+					"key": "prettier.default-config.embeddedLanguageFormatting",
+					"title": "Embedded Language Formatting",
+					"description": "Control whether Prettier formats quoted code embedded in the file.",
+					"link": "https://prettier.io/docs/en/options.html#embedded-language-formatting",
+					"type": "enum",
+					"radio": false,
+					"default": "auto",
+					"values": ["auto", "off"]
+				},
+				{
+					"key": "prettier.default-config.singleAttributePerLine",
+					"title": "Single Attribute Per Line",
+					"description": "Enforce single attribute per line in HTML, Vue, and JSX.",
+					"link": "https://prettier.io/docs/en/options.html#single-attribute-per-line",
+					"type": "boolean",
+					"default": false
 				}
 			]
 		},
 		{
 			"key": "prettier.format-on-save.section",
-			"title": "Format on save",
-			"description": "Can be overridden in project settings (except for ignored syntaxes).",
+			"title": "Format on Save Settings",
 			"type": "section",
 			"children": [
 				{
 					"key": "prettier.format-on-save",
-					"title": "Format documents when saved",
-					"description": "Can be overridden in project settings.",
+					"title": "Format on Saved",
+					"description": "Automatically format documents when they are saved.",
 					"type": "boolean",
 					"default": true
 				},
 				{
 					"key": "prettier.format-on-save.ignore-without-config",
-					"title": "Ignore documents without Prettier configuration file",
-					"description": "Can be overridden in project settings.",
+					"title": "Ignore Without Config",
+					"description": "When enabled, documents without a Prettier configuration file will not be formatted on save",
 					"type": "boolean",
 					"default": false
 				},
 				{
 					"key": "prettier.format-on-save.ignore-remote",
-					"title": "Ignore remote documents",
-					"description": "Can be overridden in project settings.",
+					"title": "Ignore Remote Documents",
+					"description": "When enabled, remote documents will be ignored during format on save.",
 					"type": "boolean",
 					"default": false
 				},
 				{
 					"key": "prettier.format-on-save.ignored-syntaxes.section",
-					"title": "Ignored syntaxes",
-					"description": "Documents set to an ignored syntax will never be formatted when saved",
+					"title": "Ignored Syntaxes",
+					"description": "Documents that are set to an ignored syntax will not be formatted when saved.",
 					"type": "section",
 					"children": [
 						{
@@ -268,7 +309,7 @@
 						},
 						{
 							"key": "prettier.format-on-save.ignored-syntaxes.graphql",
-							"title": "graphql",
+							"title": "GraphQL",
 							"type": "boolean",
 							"default": false
 						},
@@ -298,7 +339,7 @@
 						},
 						{
 							"key": "prettier.format-on-save.ignored-syntaxes.less",
-							"title": "LESS",
+							"title": "Less",
 							"type": "boolean",
 							"default": false
 						},
@@ -343,7 +384,7 @@
 			]
 		}
 	],
-	"config-workspace": [
+	"configWorkspace": [
 		{
 			"key": "prettier.general.section",
 			"title": "General",
@@ -351,201 +392,384 @@
 			"children": [
 				{
 					"key": "prettier.module.path",
-					"title": "Prettier module",
-					"description": "Prettier module folder. If none is specified, it defaults to the Prettier installed in the project or, if there is none, the version embedded in the extension. Can be overridden in project settings.",
+					"title": "Prettier Module",
+					"description": "Set a folder for the Prettier module. If not set, it defaults to the global settings or the module in the project.",
 					"type": "path",
 					"allowFiles": false,
 					"allowFolders": true,
+					"placeholder": "Global Default",
 					"default": true
+				},
+				{
+					"key": "prettier.debug.logging",
+					"title": "Log Debug Information",
+					"description": "Send debug information to the Extension Console.",
+					"type": "enum",
+					"radio": false,
+					"values": ["Global Default", "Enable", "Disable"],
+					"default": "Global Default"
 				}
 			]
 		},
 		{
 			"key": "prettier.default-config.section",
-			"title": "Default Prettier configuration",
-			"description": "Used for remote files or if no Prettier configuration file exists.",
+			"title": "Prettier Configuration",
+			"description": "Applied to remote files or when no Prettier configuration file exists.",
 			"type": "section",
 			"children": [
 				{
 					"key": "prettier.default-config.printWidth",
-					"title": "Print width",
-					"description": "Specify the line length that the printer will wrap on. Leave empty for global default.",
+					"title": "Print Width",
+					"description": "Specify the line length that the printer will wrap on.",
 					"link": "https://prettier.io/docs/en/options.html#print-width",
 					"type": "number",
+					"placeholder": "Global Default",
 					"default": null,
 					"min": 0
 				},
 				{
 					"key": "prettier.default-config.tabWidth",
-					"title": "Tab width",
-					"description": "Specify the number of spaces per indentation-level. Leave empty for global default.",
+					"title": "Tab Width",
+					"description": "Specify the number of spaces per indentation-level.",
 					"link": "https://prettier.io/docs/en/options.html#tab-width",
 					"type": "number",
+					"placeholder": "Global Default",
 					"default": null,
 					"min": 0
 				},
 				{
 					"key": "prettier.default-config.useTabs",
-					"title": "Use tabs",
+					"title": "Tabs",
 					"description": "Indent lines with tabs instead of spaces.",
 					"link": "https://prettier.io/docs/en/options.html#tabs",
 					"type": "enum",
+					"radio": false,
 					"values": ["Global Default", "Enable", "Disable"],
 					"default": "Global Default"
 				},
 				{
 					"key": "prettier.default-config.semi",
-					"title": "Use semicolons",
+					"title": "Semicolons",
 					"description": "Print semicolons at the ends of statements.",
-					"link": "https://prettier.io/docs/en/options.html#semi",
+					"link": "https://prettier.io/docs/en/options.html#semicolons",
 					"type": "enum",
+					"radio": false,
 					"values": ["Global Default", "Enable", "Disable"],
 					"default": "Global Default"
 				},
 				{
 					"key": "prettier.default-config.singleQuote",
-					"title": "Use single quotes",
+					"title": "Single Quotes",
 					"description": "Use single quotes instead of double quotes.",
-					"link": "https://prettier.io/docs/en/options.html#single-quote",
+					"link": "https://prettier.io/docs/en/options.html#quotes",
 					"type": "enum",
+					"radio": false,
 					"values": ["Global Default", "Enable", "Disable"],
 					"default": "Global Default"
 				},
 				{
 					"key": "prettier.default-config.quoteProps",
-					"title": "Quote props",
+					"title": "Quote Props",
 					"description": "Change when properties in objects are quoted.",
 					"link": "https://prettier.io/docs/en/options.html#quote-props",
 					"type": "enum",
+					"radio": false,
 					"default": "Global Default",
 					"values": ["Global Default", "as-needed", "consistent", "preserve"]
 				},
 				{
 					"key": "prettier.default-config.jsxSingleQuote",
-					"title": "Use single quotes in JSX",
+					"title": "JSX Single Quotes",
 					"description": "Use single quotes instead of double quotes in JSX.",
-					"link": "https://prettier.io/docs/en/options.html#jsx-single-quote",
+					"link": "https://prettier.io/docs/en/options.html#jsx-quotes",
 					"type": "enum",
+					"radio": false,
 					"values": ["Global Default", "Enable", "Disable"],
 					"default": "Global Default"
 				},
 				{
 					"key": "prettier.default-config.trailingComma",
-					"title": "Trailing commas",
-					"description": "Print trailing commas wherever possible when multi-line. (A single-line array, for example, never gets trailing commas.)",
-					"link": "https://prettier.io/docs/en/options.html#trailing-comma",
+					"title": "Trailing Commas",
+					"description": "Print trailing commas wherever possible in multi-line comma-separated syntactic structures. (A single-line array, for example, never gets trailing commas.)",
+					"link": "https://prettier.io/docs/en/options.html#trailing-commas",
 					"type": "enum",
+					"radio": false,
 					"default": "Global Default",
-					"values": ["Global Default", "es5", "none", "all"]
+					"values": ["Global Default", "all", "es5", "none"]
 				},
 				{
 					"key": "prettier.default-config.bracketSpacing",
-					"title": "Use bracket spacing",
+					"title": "Bracket Spacing",
 					"description": "Print spaces between brackets in object literals.",
 					"link": "https://prettier.io/docs/en/options.html#bracket-spacing",
 					"type": "enum",
+					"radio": false,
+					"values": ["Global Default", "Enable", "Disable"],
+					"default": "Global Default"
+				},
+				{
+					"key": "prettier.default-config.bracketSameLine",
+					"title": "Bracket Line",
+					"description": "Put the > of a multi-line HTML (HTML, JSX, Vue, Angular) element at the end of the last line instead of being alone on the next line (does not apply to self closing elements).",
+					"link": "https://prettier.io/docs/en/options.html#bracket-line",
+					"type": "enum",
+					"radio": false,
 					"values": ["Global Default", "Enable", "Disable"],
 					"default": "Global Default"
 				},
 				{
 					"key": "prettier.default-config.jsxBracketSameLine",
-					"title": "Use same-line JSX brackets",
+					"title": "[Deprecated] JSX Brackets",
 					"description": "Put the > of a multi-line JSX element at the end of the last line instead of being alone on the next line (does not apply to self closing elements).",
-					"link": "https://prettier.io/docs/en/options.html#jsx-brackets-same-line",
+					"link": "https://prettier.io/docs/en/options#deprecated-jsx-brackets",
 					"type": "enum",
+					"radio": false,
 					"values": ["Global Default", "Enable", "Disable"],
 					"default": "Global Default"
 				},
 				{
 					"key": "prettier.default-config.arrowParens",
-					"title": "Arrow function parentheses",
+					"title": "Arrow Function Parentheses",
 					"description": "Include parentheses around a sole arrow function parameter.",
-					"link": "https://prettier.io/docs/en/options.html#arrow-parens",
+					"link": "https://prettier.io/docs/en/options.html#arrow-function-parentheses",
 					"type": "enum",
+					"radio": false,
 					"default": "Global Default",
 					"values": ["Global Default", "always", "avoid"]
 				},
 				{
 					"key": "prettier.default-config.requirePragma",
-					"title": "Require pragma",
-					"description": "Prettier can restrict itself to only format files that contain a special comment, called a pragma, at the top of the file. This is very useful when gradually transitioning large, unformatted codebases to prettier.",
+					"title": "Require Pragma",
+					"description": "Prettier can restrict itself to only format files that contain a special comment, called a pragma, at the top of the file. This is very useful when gradually transitioning large, unformatted codebases to Prettier.",
 					"link": "https://prettier.io/docs/en/options.html#require-pragma",
+					"radio": false,
 					"type": "enum",
 					"values": ["Global Default", "Enable", "Disable"],
 					"default": "Global Default"
 				},
 				{
 					"key": "prettier.default-config.insertPragma",
-					"title": "Insert pragma",
-					"description": "Prettier can insert a special @format marker at the top of files specifying that the file has been formatted with prettier. This works well when used in tandem with the --require-pragma option. If there is already a docblock at the top of the file then this option will add a newline to it with the @format marker.",
+					"title": "Insert Pragma",
+					"description": "Prettier can insert a special @format marker at the top of files specifying that the file has been formatted with Prettier. This works well when used in tandem with the above Require Pragma option. If there is already a docblock at the top of the file then this option will add a newline to it with the @format marker.",
 					"link": "https://prettier.io/docs/en/options.html#insert-pragma",
+					"radio": false,
 					"type": "enum",
 					"values": ["Global Default", "Enable", "Disable"],
 					"default": "Global Default"
 				},
 				{
 					"key": "prettier.default-config.proseWrap",
-					"title": "Prose wrap",
-					"description": "By default, Prettier will wrap markdown text as-is since some services use a linebreak-sensitive renderer, e.g. GitHub comment and BitBucket. In some cases you may want to rely on editor/viewer soft wrapping instead, so this option allows you to opt out with \"never\".",
+					"title": "Prose Wrap",
+					"description": "By default, Prettier will not change wrapping in markdown text since some services use a linebreak-sensitive renderer, e.g. GitHub comments and BitBucket. To have Prettier wrap prose to the print width, change this option to \"always\". If you want Prettier to force all prose blocks to be on a single line and rely on editor/viewer soft wrapping instead, you can use \"never\".",
 					"link": "https://prettier.io/docs/en/options.html#prose-wrap",
 					"type": "enum",
+					"radio": false,
 					"default": "Global Default",
 					"values": ["Global Default", "always", "never", "preserve"]
 				},
 				{
 					"key": "prettier.default-config.htmlWhitespaceSensitivity",
-					"title": "HTML whitespace sensitivity",
-					"description": "Specify the global whitespace sensitivity for HTML files, see Prettier documentation formatting for more info.",
+					"title": "HTML Whitespace Sensitivity",
+					"description": "Specify the global whitespace sensitivity for HTML, Vue, Angular, and Handlebars. See Prettier documentation for more info.",
 					"link": "https://prettier.io/docs/en/options.html#html-whitespace-sensitivity",
 					"type": "enum",
+					"radio": false,
 					"default": "Global Default",
 					"values": ["Global Default", "css", "strict", "ignore"]
 				},
 				{
 					"key": "prettier.default-config.vueIndentScriptAndStyle",
-					"title": "Ident vue file script and style tags",
-					"description": "Whether or not to indent the code inside <script> and <style> tags in Vue files. Some people (like the creator of Vue) don’t indent to save an indentation level, but this might break code folding in your editor.",
-					"link": "https://prettier.io/docs/en/options.html#vue-indent-script-and-style",
+					"title": "Vue files script and style tags indentation",
+					"description": "Whether or not to indent the code inside <script> and <style> tags in Vue files.",
+					"link": "https://prettier.io/docs/en/options.html#vue-files-script-and-style-tags-indentation",
 					"type": "enum",
+					"radio": false,
 					"values": ["Global Default", "Enable", "Disable"],
 					"default": "Global Default"
 				},
 				{
 					"key": "prettier.default-config.endOfLine",
-					"title": "End of line",
-					"description": "",
+					"title": "End of Line",
+					"description": "Newline control character",
 					"link": "https://prettier.io/docs/en/options.html#end-of-line",
 					"type": "enum",
+					"radio": false,
 					"default": "Global Default",
 					"values": ["Global Default", "lf", "crlf", "cr", "auto"]
+				},
+				{
+					"key": "prettier.default-config.embeddedLanguageFormatting",
+					"title": "Embedded Language Formatting",
+					"description": "Control whether Prettier formats quoted code embedded in the file.",
+					"link": "https://prettier.io/docs/en/options.html#embedded-language-formatting",
+					"type": "enum",
+					"radio": false,
+					"default": "Global Default",
+					"values": ["Global Default", "auto", "off"]
+				},
+				{
+					"key": "prettier.default-config.singleAttributePerLine",
+					"title": "Single Attribute Per Line",
+					"description": "Enforce single attribute per line in HTML, Vue, and JSX.",
+					"link": "https://prettier.io/docs/en/options.html#single-attribute-per-line",
+					"type": "enum",
+					"radio": false,
+					"values": ["Global Default", "Enable", "Disable"],
+					"default": "Global Default"
 				}
 			]
 		},
 		{
 			"key": "prettier.format-on-save.section",
-			"title": "Format on save",
+			"title": "Format on Save Settings",
 			"type": "section",
 			"children": [
 				{
 					"key": "prettier.format-on-save",
-					"title": "Format documents when saved",
+					"title": "Format on Saved",
+					"description": "Automatically format documents when they are saved.",
 					"type": "enum",
+					"radio": false,
 					"values": ["Global Default", "Enable", "Disable"],
 					"default": "Global Default"
 				},
 				{
 					"key": "prettier.format-on-save.ignore-without-config",
-					"title": "Ignore documents without Prettier configuration file",
+					"title": "Ignore Without Config",
+					"description": "When enabled, documents without a Prettier configuration file will not be formatted on save",
 					"type": "enum",
+					"radio": false,
 					"values": ["Global Default", "Enable", "Disable"],
 					"default": "Global Default"
 				},
 				{
 					"key": "prettier.format-on-save.ignore-remote",
-					"title": "Ignore remote documents",
+					"title": "Ignore Remote Documents",
+					"description": "When enabled, remote documents will be ignored during format on save.",
 					"type": "enum",
+					"radio": false,
 					"values": ["Global Default", "Enable", "Disable"],
 					"default": "Global Default"
+				},
+				{
+					"key": "prettier.format-on-save.ignored-syntaxes.section",
+					"title": "Ignored Syntaxes",
+					"description": "Documents that are set to an ignored syntax will not be formatted when saved.",
+					"type": "section",
+					"children": [
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.css",
+							"title": "CSS",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.flow",
+							"title": "Flow",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.graphql",
+							"title": "GraphQL",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.html",
+							"title": "HTML",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.javascript",
+							"title": "JavaScript",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.json",
+							"title": "JSON",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.jsx",
+							"title": "JSX",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.less",
+							"title": "Less",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.markdown",
+							"title": "Markdown",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.php",
+							"title": "PHP",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.scss",
+							"title": "SCSS",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.typescript",
+							"title": "TypeScript",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.vue",
+							"title": "Vue",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						},
+						{
+							"key": "prettier.format-on-save.ignored-syntaxes.yaml",
+							"title": "YAML",
+							"type": "enum",
+							"radio": false,
+							"values": ["Global Default", "Format on Save", "Ignore"],
+							"default": "Global Default"
+						}
+					]
 				}
 			]
 		}
