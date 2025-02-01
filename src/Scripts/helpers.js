@@ -50,16 +50,13 @@ function observeConfigWithWorkspaceOverride(name, fn) {
 
 function getWorkspaceConfig(name) {
 	const value = nova.workspace.config.get(name)
-	switch (value) {
-		case 'Enable':
-			return true
-		case 'Disable':
-			return false
-		case 'Global Default':
-			return null
-		default:
-			return value
+	if (['Enable', 'Ignore'].includes(value)) {
+		return true
 	}
+	if (['Disable', 'Format on Save'].includes(value)) {
+		return false
+	}
+	return value === 'Global Default' ? null : value
 }
 
 function handleProcessResult(process, reject, resolve) {
@@ -82,7 +79,10 @@ const log = Object.fromEntries(
 	['log', 'info', 'warn'].map((fn) => [
 		fn,
 		(...args) => {
-			if (!nova.inDevMode() && !nova.config.get('prettier.debug.logging')) {
+			if (
+				!nova.inDevMode() &&
+				!getConfigWithWorkspaceOverride('prettier.debug.logging')
+			) {
 				return
 			}
 			console[fn](...args)
